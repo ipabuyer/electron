@@ -2,6 +2,7 @@
 import { Box, IconButton, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import AppIcon from '../../assets/Icon.ico';
 
 const CustomTitleBar = ({ title, children, isSidebarCollapsed, onToggleSidebar }) => {
   return (
@@ -24,6 +25,14 @@ const CustomTitleBar = ({ title, children, isSidebarCollapsed, onToggleSidebar }
           <IconButton size="small" onClick={onToggleSidebar}>
             {isSidebarCollapsed ? <MenuIcon fontSize="small" /> : <MenuOpenIcon fontSize="small" />}
           </IconButton>
+        </Box>
+        <Box sx={{ width: 20, height: 20, WebkitAppRegion: 'no-drag' }}>
+          <Box
+            component="img"
+            src={AppIcon}
+            alt="IPAbuyer"
+            sx={{ width: 20, height: 20, display: 'block' }}
+          />
         </Box>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
           {title}
