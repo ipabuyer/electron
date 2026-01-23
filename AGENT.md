@@ -5,7 +5,7 @@
 ## 软件框架
 
 1. electron和react作为软件框架
-2. 使用fluentui作为UI库
+2. 使用mui/material-ui作为UI库
 3. sql.js作为数据库交互组件
 4. axios作为http交互组件
 5. 使用Node.js内置模块调用ipatool.exe执行命令
