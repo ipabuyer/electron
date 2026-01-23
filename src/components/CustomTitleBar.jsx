@@ -44,11 +44,12 @@ const CustomTitleBar = ({ title, children, isSidebarCollapsed, onToggleSidebar }
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          WebkitAppRegion: 'no-drag',
           pr: 14
         }}
       >
-        {children}
+        <Box sx={{ WebkitAppRegion: 'no-drag', display: 'flex', alignItems: 'center' }}>
+          {children}
+        </Box>
       </Box>
       <Box sx={{ width: 120 }} />
     </Box>
