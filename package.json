@@ -1,6 +1,8 @@
 {
   "name": "ipabuyer-electron",
   "version": "2026.1.23.1",
+  "description": "IPAbuyer Electron client",
+  "author": "IPAbuyer",
   "repository": {
     "type": "git",
     "url": "https://github.com/ipabuyer/electron"
@@ -21,8 +23,6 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.7",
     "axios": "^1.13.2",
-    "electron": "^40.0.0",
-    "electron-builder": "^26.4.0",
     "electron-windows-store": "^2.1.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -32,6 +32,8 @@
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.0",
     "cross-env": "^7.0.3",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0",
     "vite": "^5.2.9",
     "wait-on": "^7.2.0"
   },
@@ -54,15 +56,14 @@
     "win": {
       "target": [
         {
-          "target": "msix",
+          "target": "appx",
           "arch": [
             "x64"
           ]
         }
-      ],
-      "publisherName": "CN=68F867E4-B304-4B5D-9818-31B1910E0771"
+      ]
     },
-    "msix": {
+    "appx": {
       "identityName": "IPAbuyer.IPAbuyer",
       "publisher": "CN=68F867E4-B304-4B5D-9818-31B1910E0771",
       "languages": [
@@ -71,8 +72,7 @@
       "displayName": "IPAbuyer",
       "publisherDisplayName": "IPAbuyer",
       "applicationId": "IPAbuyer",
-      "backgroundColor": "#ffffff",
-      "buildVersion": "0.2.0.0"
+      "backgroundColor": "#ffffff"
     }
   }
 }
