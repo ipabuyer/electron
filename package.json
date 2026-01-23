@@ -8,8 +8,12 @@
   "private": true,
   "main": "main.js",
   "dependencies": {
+    "axios": "^1.13.2",
     "electron": "^40.0.0",
     "electron-builder": "^26.4.0",
-    "react": "^19.2.3"
+    "electron-windows-store": "^2.1.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "sql.js": "^1.13.0"
   }
 }
