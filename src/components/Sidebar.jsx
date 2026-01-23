@@ -24,10 +24,11 @@ const Sidebar = ({ App_ActivePage_String, setApp_ActivePage_String, Sidebar_Coll
         minHeight: '100%',
         alignSelf: 'stretch',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        pt: 1
       }}
     >
-      <List sx={{ px: 1, pt: 0 }}>
+      <List sx={{ px: 1, pt: 1 }}>
         {Sidebar_Items_Array.map((item) => {
           const content = (
             <ListItemButton

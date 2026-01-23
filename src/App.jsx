@@ -120,7 +120,7 @@ const App = () => {
             setApp_ActivePage_String={setApp_ActivePage_String}
             Sidebar_Collapsed_Boolean={App_SidebarCollapsed_Boolean}
           />
-          <Box sx={{ flex: 1, minWidth: 0, p: 3, overflow: 'auto' }}>
+          <Box sx={{ flex: 1, minWidth: 0, px: 3, pb: 3, pt: 2, overflow: 'auto' }}>
             {App_ActivePage_String === 'home' && (
               <HomePage
                 App_CountryCode_String={App_CountryCode_String}
