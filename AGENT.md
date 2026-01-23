@@ -13,7 +13,6 @@
 ## 数据库
 
 1. PurchasedAppDb.db文件存放已购买app、购买app的邮箱地址、app的状态（即“已购买”和“已拥有”）
-2. KeychainConfig.db文件存放登录app的用户名（邮箱）以及加密密钥，禁止存放用户名密码；每个用户名都有其对应的加密密钥，对新用户名生成唯一的随机加密密钥
 
 ## 搜索功能
 
@@ -43,8 +42,16 @@
 1. 对app进行购买和下载，需要用户登录苹果账户
 2. 登录命令为：`ipatool.exe auth login --auth-code 双重验证码 --email 邮箱 --password 密码 --keychain-passphrase 加密密钥`；可以先通过只传入邮箱和密码的方式，让苹果向用户发送双重验证码，然后再让用户输入双重验证码；如果用户仍然收不到双重验证码，则提示用户打开<https://account.apple.com/>，输入用户名和密码后获取双重验证码，然后填入本软件
 3. 需要提示用户，新创建的苹果账号不能直接用于进行购买和下载，必须要在苹果设备上登陆过一次AppStore并完成一次app的购买
-4. 登出命令为：`ipatool.exe auth revoke`
-5. 为了测试用途，在数据库中准备用户名test和密码test的账户，该账户购买或下载任何app都直接成功，该账户用于界面测试
+4. 查询登录状态的命令：`ipatool.exe auth info --keychain-passphrase 加密密钥`
+5. 登出命令为：`ipatool.exe auth revoke`
+6. 为了测试用途，在数据库中准备用户名test和密码test的账户，该账户购买或下载任何app都直接成功，该账户用于界面测试
+
+## 账户加密密钥处理
+
+1. 账户登录时，需要让用户输入加密密钥即keychain passphrase用于加密ipatool的配置文件
+2. 在账户页面，若用户需要修改加密密钥，提示其退出登录并重新登录，在这个过程中输入新的加密密钥
+3. 注意：只有ipatool auth处于登录状态时，才存在加密密钥
+4. 加密密钥存储在数据库路径里，用passphrase.txt储存即可
 
 ## 变量命名
 
