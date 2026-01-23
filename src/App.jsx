@@ -73,6 +73,7 @@ const App = () => {
   });
   const [App_TitleBarContent_Node, setApp_TitleBarContent_Node] = useState(null);
   const [App_StatusRefreshSeed_Number, setApp_StatusRefreshSeed_Number] = useState(0);
+  const [App_SidebarCollapsed_Boolean, setApp_SidebarCollapsed_Boolean] = useState(false);
   const [App_Snackbar_Object, setApp_Snackbar_Object] = useState({
     open: false,
     severity: 'info',
@@ -106,11 +107,18 @@ const App = () => {
           color: 'text.primary'
         }}
       >
-        <CustomTitleBar title="IPAbuyer">{App_TitleBarContent_VisibleNode}</CustomTitleBar>
+        <CustomTitleBar
+          title="IPAbuyer"
+          isSidebarCollapsed={App_SidebarCollapsed_Boolean}
+          onToggleSidebar={() => setApp_SidebarCollapsed_Boolean((prev) => !prev)}
+        >
+          {App_TitleBarContent_VisibleNode}
+        </CustomTitleBar>
         <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
           <Sidebar
             App_ActivePage_String={App_ActivePage_String}
             setApp_ActivePage_String={setApp_ActivePage_String}
+            Sidebar_Collapsed_Boolean={App_SidebarCollapsed_Boolean}
           />
           <Box sx={{ flex: 1, minWidth: 0, p: 3, overflow: 'auto' }}>
             {App_ActivePage_String === 'home' && (

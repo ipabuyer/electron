@@ -1,13 +1,16 @@
 ﻿import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 
-const CustomTitleBar = ({ title, children }) => {
+const CustomTitleBar = ({ title, children, isSidebarCollapsed, onToggleSidebar }) => {
   return (
     <Box
       sx={{
         WebkitAppRegion: 'drag',
         height: 40,
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr auto',
         alignItems: 'center',
         px: 2,
         bgcolor: 'background.paper',
@@ -16,9 +19,16 @@ const CustomTitleBar = ({ title, children }) => {
         userSelect: 'none'
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-        {title}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ WebkitAppRegion: 'no-drag' }}>
+          <IconButton size="small" onClick={onToggleSidebar}>
+            {isSidebarCollapsed ? <MenuIcon fontSize="small" /> : <MenuOpenIcon fontSize="small" />}
+          </IconButton>
+        </Box>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {title}
+        </Typography>
+      </Box>
       <Box
         sx={{
           flex: 1,
@@ -31,6 +41,7 @@ const CustomTitleBar = ({ title, children }) => {
       >
         {children}
       </Box>
+      <Box sx={{ width: 120 }} />
     </Box>
   );
 };
