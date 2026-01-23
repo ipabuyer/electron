@@ -1,22 +1,79 @@
 {
   "name": "ipabuyer-electron",
   "version": "2026.1.23.1",
+  "description": "IPAbuyer Electron client",
+  "author": "IPAbuyer",
   "repository": {
     "type": "git",
     "url": "https://github.com/ipabuyer/electron"
   },
   "private": true,
-  "main": "main.js",
+  "main": "main/main.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development node ./node_modules/vite/bin/vite.js",
+    "electron": "cross-env NODE_ENV=development electron .",
+    "electron:wait": "wait-on http://localhost:5173 && npm run electron",
+    "start": "concurrently -k -n \"renderer,electron\" -c \"cyan,green\" --success first \"npm:dev\" \"npm:electron:wait\"",
+    "build:renderer": "cross-env NODE_ENV=production vite build",
+    "build:app": "cross-env NODE_ENV=production electron-builder",
+    "build": "npm run build:renderer && npm run build:app"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "axios": "^1.13.2",
-    "electron": "^40.0.0",
-    "electron-builder": "^26.4.0",
     "electron-windows-store": "^2.1.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0",
+    "vite": "^5.2.9",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "IPAbuyer.IPAbuyer",
+    "productName": "IPAbuyer",
+    "buildVersion": "0.2.0.0",
+    "directories": {
+      "buildResources": "assets",
+      "output": "release"
+    },
+    "files": [
+      "node_modules/**/*",
+      "dist/**/*",
+      "main/**/*",
+      "include/**/*",
+      "db/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "appx",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "appx": {
+      "identityName": "IPAbuyer.IPAbuyer",
+      "publisher": "CN=68F867E4-B304-4B5D-9818-31B1910E0771",
+      "languages": [
+        "zh-CN"
+      ],
+      "displayName": "IPAbuyer",
+      "publisherDisplayName": "IPAbuyer",
+      "applicationId": "IPAbuyer",
+      "backgroundColor": "#ffffff"
+    }
   }
 }
