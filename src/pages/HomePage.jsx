@@ -7,12 +7,14 @@ import {
   CircularProgress,
   Menu,
   MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  TableContainer,
   Tabs,
   Tab,
   TextField,
@@ -297,44 +299,46 @@ const HomePage = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 2,
-          flexWrap: 'wrap'
-        }}
-      >
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Button
-            variant="contained"
-            onClick={() => HomePage_HandlePurchase_AsyncFunction()}
-            disabled={HomePage_ActionLoading_Boolean}
-          >
-            购买
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => HomePage_HandleDownload_AsyncFunction()}
-            disabled={HomePage_ActionLoading_Boolean}
-          >
-            下载
-          </Button>
-        </Stack>
-        <Tabs
-          value={HomePage_Filter_String}
-          onChange={(_e, v) => setHomePage_Filter_String(v)}
-          variant="scrollable"
-          scrollButtons="auto"
+      <Paper sx={{ p: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+            flexWrap: 'wrap'
+          }}
         >
-          {FILTERS.map((filter) => (
-            <Tab key={filter.key} value={filter.key} label={filter.label} />
-          ))}
-        </Tabs>
-      </Box>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button
+              variant="contained"
+              onClick={() => HomePage_HandlePurchase_AsyncFunction()}
+              disabled={HomePage_ActionLoading_Boolean}
+            >
+              购买
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => HomePage_HandleDownload_AsyncFunction()}
+              disabled={HomePage_ActionLoading_Boolean}
+            >
+              下载
+            </Button>
+          </Stack>
+          <Tabs
+            value={HomePage_Filter_String}
+            onChange={(_e, v) => setHomePage_Filter_String(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            {FILTERS.map((filter) => (
+              <Tab key={filter.key} value={filter.key} label={filter.label} />
+            ))}
+          </Tabs>
+        </Box>
+      </Paper>
 
-      <Box sx={{ overflow: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
+      <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 220px)' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
@@ -401,7 +405,7 @@ const HomePage = ({
             )}
           </TableBody>
         </Table>
-      </Box>
+      </TableContainer>
 
       <Menu
         open={HomePage_ContextMenu_Object !== null}

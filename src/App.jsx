@@ -27,6 +27,34 @@ const getTheme = (mode) =>
     shape: { borderRadius: 12 },
     typography: {
       fontFamily: "'Segoe UI', 'Microsoft YaHei', system-ui, -apple-system, sans-serif"
+    },
+    components: {
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            border: mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(15,23,42,0.08)',
+            backgroundImage:
+              mode === 'dark'
+                ? 'linear-gradient(160deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))'
+                : 'linear-gradient(160deg, rgba(15,23,42,0.02), rgba(15,23,42,0.01))'
+          }
+        }
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          head: {
+            fontWeight: 700
+          }
+        }
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            minHeight: 40
+          }
+        }
+      }
     }
   });
 

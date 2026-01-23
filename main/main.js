@@ -23,6 +23,13 @@ const createWindow = async () => {
     minHeight: 720,
     title: 'IPAbuyer',
     backgroundColor: '#0f1115',
+    frame: false,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#141821',
+      symbolColor: '#e5e7eb',
+      height: 40
+    },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

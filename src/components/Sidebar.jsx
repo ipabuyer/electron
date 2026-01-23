@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { List, ListItemButton, ListItemText } from '@mui/material';
+import { Box, List, ListItemButton, ListItemText, Typography } from '@mui/material';
 
 const Sidebar = ({ App_ActivePage_String, setApp_ActivePage_String }) => {
   const Sidebar_Items_Array = [
@@ -9,26 +9,43 @@ const Sidebar = ({ App_ActivePage_String, setApp_ActivePage_String }) => {
   ];
 
   return (
-    <List
+    <Box
       sx={{
-        width: 180,
-        minWidth: 140,
+        width: 200,
+        minWidth: 160,
         bgcolor: 'background.paper',
         borderRight: 1,
         borderColor: 'divider',
-        height: '100%'
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
-      {Sidebar_Items_Array.map((item) => (
-        <ListItemButton
-          key={item.key}
-          selected={App_ActivePage_String === item.key}
-          onClick={() => setApp_ActivePage_String(item.key)}
-        >
-          <ListItemText primary={item.label} />
-        </ListItemButton>
-      ))}
-    </List>
+      <Box sx={{ px: 2, py: 2 }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          导航
+        </Typography>
+      </Box>
+      <List sx={{ px: 1, pt: 0 }}>
+        {Sidebar_Items_Array.map((item) => (
+          <ListItemButton
+            key={item.key}
+            selected={App_ActivePage_String === item.key}
+            onClick={() => setApp_ActivePage_String(item.key)}
+            sx={{
+              borderRadius: 1.5,
+              mb: 0.5,
+              '&.Mui-selected': {
+                bgcolor: 'action.selected',
+                fontWeight: 600
+              }
+            }}
+          >
+            <ListItemText primary={item.label} />
+          </ListItemButton>
+        ))}
+      </List>
+    </Box>
   );
 };
 

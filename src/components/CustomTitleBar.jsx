@@ -23,9 +23,10 @@ const CustomTitleBar = ({ title, children }) => {
         sx={{
           flex: 1,
           display: 'flex',
-          justifyContent: 'flex-end',
+          justifyContent: 'center',
           alignItems: 'center',
-          WebkitAppRegion: 'no-drag'
+          WebkitAppRegion: 'no-drag',
+          pr: 14
         }}
       >
         {children}
