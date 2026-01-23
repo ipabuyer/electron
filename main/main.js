@@ -31,6 +31,7 @@ const createWindow = async () => {
     minWidth: 1080,
     minHeight: 720,
     title: 'IPAbuyer',
+    icon: path.join(__dirname, '../assets/Icon.ico'),
     backgroundColor: '#0f1115',
     frame: false,
     titleBarStyle: 'hidden',
