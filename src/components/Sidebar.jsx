@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Tooltip, Typography } from '@mui/material';
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Tooltip } from '@mui/material';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
@@ -25,13 +25,6 @@ const Sidebar = ({ App_ActivePage_String, setApp_ActivePage_String, Sidebar_Coll
         flexDirection: 'column'
       }}
     >
-      {!Sidebar_Collapsed_Boolean && (
-        <Box sx={{ px: 2, py: 2 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            导航
-          </Typography>
-        </Box>
-      )}
       <List sx={{ px: 1, pt: 0 }}>
         {Sidebar_Items_Array.map((item) => {
           const content = (
