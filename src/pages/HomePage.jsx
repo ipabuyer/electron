@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
   Menu,
   MenuItem,
   Paper,
@@ -21,6 +22,7 @@ import {
   Typography,
   Checkbox
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 
 const FILTERS = [
   { key: 'all', label: '全部' },
@@ -275,18 +277,23 @@ const HomePage = ({
           sx={{ WebkitAppRegion: 'no-drag' }}
           inputProps={{ style: { WebkitAppRegion: 'no-drag' } }}
         />
-        <Button
-          variant="contained"
+        <IconButton
+          color="primary"
           onClick={HomePage_RunSearch_AsyncFunction}
           disabled={HomePage_IsSearching_Boolean}
-          sx={{ whiteSpace: 'nowrap' }}
+          sx={{
+            width: 36,
+            height: 36,
+            border: 1,
+            borderColor: 'divider'
+          }}
         >
           {HomePage_IsSearching_Boolean ? (
             <CircularProgress size={18} color="inherit" />
           ) : (
-            '搜索'
+            <SearchIcon fontSize="small" />
           )}
-        </Button>
+        </IconButton>
       </Box>
     ),
     [HomePage_IsSearching_Boolean, HomePage_RunSearch_AsyncFunction, HomePage_SearchTerm_String]
