@@ -38,7 +38,7 @@
 ## 登录苹果账户
 
 1. 对app进行购买和下载，需要用户登录苹果账户
-2. 登录命令为：`ipatool.exe auth login --auth-code 双重验证码 --email 邮箱 --password 密码 --keychain-passphrase 加密密钥`
+2. 登录命令为：`ipatool.exe auth login --auth-code 双重验证码 --email 邮箱 --password 密码 --keychain-passphrase 加密密钥`；可以先通过只传入邮箱和密码的方式，让苹果向用户发送双重验证码，然后再让用户输出双重验证码；如果用户仍然收不到双重验证码，则提示用户打开<https://account.apple.com/>，输入用户名和密码后获取双重验证码，然后填入本软件
 3. 登出命令为：`ipatool.exe auth revoke`
 4. 为了测试用途，在数据库中准备用户名test和密码test的账户，该账户购买或下载任何app都直接成功，该账户用于界面测试
 
