@@ -8,7 +8,7 @@ const CustomTitleBar = ({ title, children, isSidebarCollapsed, onToggleSidebar }
     <Box
       sx={{
         WebkitAppRegion: 'drag',
-        height: 40,
+        height: 52,
         display: 'grid',
         gridTemplateColumns: 'auto 1fr auto',
         alignItems: 'center',

@@ -19,7 +19,7 @@ const getTitleBarOverlay = () => {
   return {
     color: isDark ? '#141821' : '#f6f7fb',
     symbolColor: isDark ? '#e5e7eb' : '#111827',
-    height: 40
+      height: 52
   };
 };
 
