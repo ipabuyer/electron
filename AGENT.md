@@ -79,7 +79,7 @@
 
 ## exe可执行文件
 
-1. ipatool.exe位于include目录
+1. ipatool.exe位于include目录，注意区分amd64和arm64
 
 ## 数据库文件目录
 
