@@ -49,7 +49,6 @@ const HomePage = ({
   const [HomePage_IsSearching_Boolean, setHomePage_IsSearching_Boolean] = useState(false);
   const [HomePage_ActionLoading_Boolean, setHomePage_ActionLoading_Boolean] = useState(false);
   const [HomePage_ContextMenu_Object, setHomePage_ContextMenu_Object] = useState(null);
-  const [HomePage_IsComposing_Boolean, setHomePage_IsComposing_Boolean] = useState(false);
 
   const HomePage_LoadStatuses_AsyncFunction = useCallback(async () => {
     if (!window.electronAPI?.listAppStatuses) return;
@@ -266,13 +265,8 @@ const HomePage = ({
           placeholder="搜索应用"
           value={HomePage_SearchTerm_String}
           onChange={(e) => setHomePage_SearchTerm_String(e.target.value)}
-          onCompositionStart={() => setHomePage_IsComposing_Boolean(true)}
-          onCompositionEnd={(e) => {
-            setHomePage_IsComposing_Boolean(false);
-            setHomePage_SearchTerm_String(e.target.value);
-          }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !(e.isComposing || e.nativeEvent.isComposing || HomePage_IsComposing_Boolean)) {
+            if (e.key === 'Enter' && !(e.isComposing || e.nativeEvent.isComposing)) {
               HomePage_RunSearch_AsyncFunction();
             }
           }}

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Snackbar } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -51,9 +51,9 @@ const App = () => {
     message: ''
   });
 
-  const App_Notify_Function = (severity, message) => {
+  const App_Notify_Function = useCallback((severity, message) => {
     setApp_Snackbar_Object({ open: true, severity, message });
-  };
+  }, []);
 
   useEffect(() => {
     const loadPassphrase = async () => {

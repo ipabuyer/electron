@@ -8,11 +8,13 @@
   "private": true,
   "main": "main/main.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development vite",
+    "dev": "cross-env NODE_ENV=development node ./node_modules/vite/bin/vite.js",
     "electron": "cross-env NODE_ENV=development electron .",
-    "start": "concurrently -k \"npm:dev\" \"npm:electron\"",
+    "electron:wait": "wait-on http://localhost:5173 && npm run electron",
+    "start": "concurrently -k -n \"renderer,electron\" -c \"cyan,green\" --success first \"npm:dev\" \"npm:electron:wait\"",
     "build:renderer": "cross-env NODE_ENV=production vite build",
-    "build": "npm run build:renderer && cross-env NODE_ENV=production electron-builder"
+    "build:app": "cross-env NODE_ENV=production electron-builder",
+    "build": "npm run build:renderer && npm run build:app"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
