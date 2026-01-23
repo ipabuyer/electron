@@ -1,21 +1,32 @@
-const path = require('node:path');
+﻿const path = require('node:path');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 
-const ipatoolPath = path.join(__dirname, '../include/ipatool.exe');
+const IPATOOL_FORMAT = 'text';
+
+function getIpatoolPath() {
+  const arch = process.arch;
+  if (arch === 'arm64') {
+    return path.join(__dirname, '../include/ipatool-2.2.0-windows-arm64.exe');
+  }
+  return path.join(__dirname, '../include/ipatool-2.2.0-windows-amd64.exe');
+}
 
 const ensureBinary = () => {
+  const ipatoolPath = getIpatoolPath();
   if (!fs.existsSync(ipatoolPath)) {
     throw new Error(`ipatool.exe not found at ${ipatoolPath}`);
   }
+  return ipatoolPath;
 };
 
 const runCommand = (args) =>
   new Promise((resolve) => {
+    let ipatoolPath;
     try {
-      ensureBinary();
+      ipatoolPath = ensureBinary();
     } catch (error) {
-      resolve({ code: -1, stdout: '', stderr: error.message });
+      resolve({ code: -1, output: error.message, stdout: '', stderr: error.message });
       return;
     }
     const child = spawn(ipatoolPath, args, { windowsHide: true });
@@ -28,10 +39,11 @@ const runCommand = (args) =>
       stderr += data.toString();
     });
     child.on('error', (err) => {
-      resolve({ code: -1, stdout, stderr: err.message });
+      resolve({ code: -1, output: err.message, stdout, stderr: err.message });
     });
     child.on('close', (code) => {
-      resolve({ code, stdout, stderr });
+      const output = (stdout + '\n' + stderr).trim();
+      resolve({ code, output, stdout, stderr });
     });
   });
 
@@ -45,7 +57,18 @@ const login = async ({ email, password, authCode, passphrase }) => {
       message: '测试账户登录成功（模拟）'
     };
   }
-  const args = ['auth', 'login', '--email', email, '--password', password, '--keychain-passphrase', passphrase];
+  const args = [
+    'auth',
+    'login',
+    '--email',
+    email,
+    '--password',
+    password,
+    '--keychain-passphrase',
+    passphrase,
+    '--format',
+    IPATOOL_FORMAT
+  ];
   if (authCode) {
     args.push('--auth-code', authCode);
   }
@@ -65,7 +88,14 @@ const authInfo = async ({ passphrase, currentAuth }) => {
       email: currentAuth.email
     };
   }
-  const result = await runCommand(['auth', 'info', '--keychain-passphrase', passphrase]);
+  const result = await runCommand([
+    'auth',
+    'info',
+    '--keychain-passphrase',
+    passphrase,
+    '--format',
+    IPATOOL_FORMAT
+  ]);
   return { ok: result.code === 0, ...result };
 };
 
@@ -73,7 +103,7 @@ const authRevoke = async ({ currentAuth }) => {
   if (currentAuth?.isTest) {
     return { ok: true, mock: true, message: '测试账户已登出' };
   }
-  const result = await runCommand(['auth', 'revoke']);
+  const result = await runCommand(['auth', 'revoke', '--format', IPATOOL_FORMAT]);
   return { ok: result.code === 0, ...result };
 };
 
@@ -85,13 +115,25 @@ const purchase = async ({ bundleIds, passphrase, currentAuth }) => {
     return {
       ok: true,
       mock: true,
-      results: bundleIds.map((bundleId) => ({ bundleId, ok: true, stdout: '测试账户购买成功' }))
+      results: bundleIds.map((bundleId) => ({
+        bundleId,
+        ok: true,
+        stdout: '测试账户购买成功'
+      }))
     };
   }
 
   const results = [];
   for (const bundleId of bundleIds) {
-    const res = await runCommand(['purchase', '--keychain-passphrase', passphrase, '--bundle-identifier', bundleId]);
+    const res = await runCommand([
+      'purchase',
+      '--keychain-passphrase',
+      passphrase,
+      '--bundle-identifier',
+      bundleId,
+      '--format',
+      IPATOOL_FORMAT
+    ]);
     results.push({ bundleId, ...res, ok: res.code === 0 });
   }
   const ok = results.every((r) => r.ok);
@@ -111,7 +153,11 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth }) => {
     return {
       ok: true,
       mock: true,
-      results: bundleIds.map((bundleId) => ({ bundleId, ok: true, stdout: `测试账户下载成功 -> ${path.join(outputDir, bundleId + '.ipa')}` }))
+      results: bundleIds.map((bundleId) => ({
+        bundleId,
+        ok: true,
+        stdout: `测试账户下载成功 -> ${path.join(outputDir, bundleId + '.ipa')}`
+      }))
     };
   }
 
@@ -126,7 +172,9 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth }) => {
       '--output',
       outFile,
       '--bundle-identifier',
-      bundleId
+      bundleId,
+      '--format',
+      IPATOOL_FORMAT
     ]);
     results.push({ bundleId, target: outFile, ...res, ok: res.code === 0 });
   }

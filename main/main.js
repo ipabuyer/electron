@@ -3,13 +3,11 @@ const path = require('node:path');
 const {
   ensureDatabase,
   listStatuses,
-  upsertStatus,
   upsertMany,
-  getBaseDir,
-  getDbPath,
   getDownloadsDir,
   readPassphrase,
-  writePassphrase
+  writePassphrase,
+  clearDatabase
 } = require('./db');
 const { login, authInfo, authRevoke, purchase, download } = require('./ipatool');
 
@@ -58,16 +56,16 @@ app.on('window-all-closed', () => {
   }
 });
 
-ipcMain.handle('env:get', async () => ({
-  isDev,
-  baseDir: getBaseDir(),
-  dbPath: getDbPath(),
-  downloadsDir: getDownloadsDir()
-}));
-
 ipcMain.handle('db:list', async () => listStatuses());
-ipcMain.handle('db:set', async (_event, payload) => upsertStatus(payload));
 ipcMain.handle('db:setMany', async (_event, payload = []) => upsertMany(payload));
+ipcMain.handle('db:clear', async () => {
+  try {
+    await clearDatabase();
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
 
 ipcMain.handle('passphrase:read', async () => readPassphrase());
 ipcMain.handle('passphrase:write', async (_event, value) => writePassphrase(value));
