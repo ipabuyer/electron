@@ -269,11 +269,6 @@ const HomePage = ({
           placeholder="搜索应用"
           value={HomePage_SearchTerm_String}
           onChange={(e) => setHomePage_SearchTerm_String(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !(e.isComposing || e.nativeEvent.isComposing)) {
-              HomePage_RunSearch_AsyncFunction();
-            }
-          }}
           sx={{ WebkitAppRegion: 'no-drag' }}
           inputProps={{ style: { WebkitAppRegion: 'no-drag' } }}
         />
