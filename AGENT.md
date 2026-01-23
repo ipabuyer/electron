@@ -15,6 +15,14 @@
 
 1. PurchasedAppDb.db文件存放已购买app、购买app的邮箱地址、app的状态（即“已购买”和“已拥有”）
 
+## UI界面
+
+1. 使用侧边栏定位页面
+2. 使用自定义标题栏
+3. 共3个页面：主页、账户、设置
+4. 主页有搜索框、筛选、表格，搜索框嵌入自定义标题栏；购买、下载、筛选为一排；表格的表头为app名称与图标、appid、开发者、版本号、价格
+5. 设置有修改国家代码（默认为cn）、开发者官方网站（ipa.blazesnow.com）、清空本地数据库
+
 ## 搜索功能
 
 1. 通过`https://itunes.apple.com/search?term=搜索名称&entity=software&limit=限制输出&country=国家代码`向apple服务器查询相关的软件列表
