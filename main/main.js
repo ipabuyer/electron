@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, nativeTheme } = require('electron');
 const path = require('node:path');
 const {
   ensureDatabase,
@@ -14,6 +14,15 @@ const { login, authInfo, authRevoke, purchase, download } = require('./ipatool')
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let currentAuth = { email: null, isTest: false, passphrase: '' };
 
+const getTitleBarOverlay = () => {
+  const isDark = nativeTheme.shouldUseDarkColors;
+  return {
+    color: isDark ? '#141821' : '#f6f7fb',
+    symbolColor: isDark ? '#e5e7eb' : '#111827',
+    height: 40
+  };
+};
+
 const createWindow = async () => {
   await ensureDatabase();
   const win = new BrowserWindow({
@@ -25,17 +34,21 @@ const createWindow = async () => {
     backgroundColor: '#0f1115',
     frame: false,
     titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#141821',
-      symbolColor: '#e5e7eb',
-      height: 40
-    },
+    titleBarOverlay: getTitleBarOverlay(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
       spellcheck: false
+    }
+  });
+
+  nativeTheme.on('updated', () => {
+    try {
+      win.setTitleBarOverlay(getTitleBarOverlay());
+    } catch (_error) {
+      // ignore if overlay is not supported
     }
   });
 
