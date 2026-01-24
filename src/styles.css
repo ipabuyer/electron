@@ -11,3 +11,26 @@ body {
 a {
   color: inherit;
 }
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+:root {
+  --tb-theme-color: #f6f7fb;
+  --tb-title-text-color: #111827;
+  --tb-control-symbol-color: #111827;
+  --tb-control-hover-color: rgba(15, 23, 42, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tb-theme-color: #141821;
+    --tb-title-text-color: #e5e7eb;
+    --tb-control-symbol-color: #e5e7eb;
+    --tb-control-hover-color: rgba(255, 255, 255, 0.08);
+  }
+}

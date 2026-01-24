@@ -71,7 +71,6 @@ const App = () => {
     loggedIn: false,
     isTest: false
   });
-  const [App_TitleBarContent_Node, setApp_TitleBarContent_Node] = useState(null);
   const [App_StatusRefreshSeed_Number, setApp_StatusRefreshSeed_Number] = useState(0);
   const [App_SidebarCollapsed_Boolean, setApp_SidebarCollapsed_Boolean] = useState(false);
   const [App_Snackbar_Object, setApp_Snackbar_Object] = useState({
@@ -93,9 +92,6 @@ const App = () => {
     loadPassphrase();
   }, []);
 
-  const App_TitleBarContent_VisibleNode =
-    App_ActivePage_String === 'home' ? App_TitleBarContent_Node : null;
-
   return (
     <ThemeProvider theme={App_Theme_Object}>
       <Box
@@ -111,9 +107,7 @@ const App = () => {
           title="IPAbuyer"
           isSidebarCollapsed={App_SidebarCollapsed_Boolean}
           onToggleSidebar={() => setApp_SidebarCollapsed_Boolean((prev) => !prev)}
-        >
-          {App_TitleBarContent_VisibleNode}
-        </CustomTitleBar>
+        />
         <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
           <Sidebar
             App_ActivePage_String={App_ActivePage_String}
@@ -128,7 +122,6 @@ const App = () => {
                 App_Passphrase_String={App_Passphrase_String}
                 App_StatusRefreshSeed_Number={App_StatusRefreshSeed_Number}
                 App_Notify_Function={App_Notify_Function}
-                setApp_TitleBarContent_Node={setApp_TitleBarContent_Node}
               />
             )}
             {App_ActivePage_String === 'account' && (
