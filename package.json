@@ -38,6 +38,9 @@
     "productName": "IPAbuyer",
     "buildVersion": "0.2.0.0",
     "icon": "assets/Icon.ico",
+    "asarUnpack": [
+      "include/*.exe"
+    ],
     "directories": {
       "buildResources": "assets",
       "output": "release"
