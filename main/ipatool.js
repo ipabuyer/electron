@@ -3,6 +3,9 @@ const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 
 const IPATOOL_FORMAT = 'text';
+const ANSI_REGEX = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+
+const stripAnsi = (value) => (value ? value.replace(ANSI_REGEX, '') : value);
 
 function getIpatoolPath() {
   const arch = process.arch;
@@ -42,8 +45,10 @@ const runCommand = (args) =>
       resolve({ code: -1, output: err.message, stdout, stderr: err.message });
     });
     child.on('close', (code) => {
-      const output = (stdout + '\n' + stderr).trim();
-      resolve({ code, output, stdout, stderr });
+      const cleanStdout = stripAnsi(stdout).trim();
+      const cleanStderr = stripAnsi(stderr).trim();
+      const output = `${cleanStdout}\n${cleanStderr}`.trim();
+      resolve({ code, output, stdout: cleanStdout, stderr: cleanStderr });
     });
   });
 
