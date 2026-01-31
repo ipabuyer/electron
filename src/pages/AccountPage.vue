@@ -11,6 +11,7 @@
           class="ui-input"
           type="text"
           autocomplete="username"
+          :disabled="AccountPage_IsLocked_Boolean"
         />
       </label>
       <label class="field">
@@ -21,6 +22,7 @@
             class="ui-input"
             :type="AccountPage_ShowPassword_Boolean ? 'text' : 'password'"
             autocomplete="current-password"
+            :disabled="AccountPage_IsLocked_Boolean"
           />
           <button
             class="eye-button"
@@ -31,6 +33,7 @@
             @mouseleave="AccountPage_ShowPassword_Boolean = false"
             @touchstart.prevent="AccountPage_ShowPassword_Boolean = true"
             @touchend="AccountPage_ShowPassword_Boolean = false"
+            :disabled="AccountPage_IsLocked_Boolean"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -44,7 +47,7 @@
       </label>
       <label class="field">
         <span>双重验证码（可选）</span>
-        <input v-model="AccountPage_LoginForm_Object.authCode" class="ui-input" type="text" />
+        <input v-model="AccountPage_LoginForm_Object.authCode" class="ui-input" type="text" :disabled="AccountPage_IsLocked_Boolean" />
         <small class="hint">可先只输入邮箱+密码获取验证码，再输入验证码登录</small>
       </label>
       <label class="field">
@@ -55,6 +58,7 @@
             class="ui-input"
             :type="AccountPage_ShowPassphrase_Boolean ? 'text' : 'password'"
             @input="props.setApp_Passphrase_String(AccountPage_LoginForm_Object.passphrase)"
+            :disabled="AccountPage_IsLocked_Boolean"
           />
           <button
             class="eye-button"
@@ -65,6 +69,7 @@
             @mouseleave="AccountPage_ShowPassphrase_Boolean = false"
             @touchstart.prevent="AccountPage_ShowPassphrase_Boolean = true"
             @touchend="AccountPage_ShowPassphrase_Boolean = false"
+            :disabled="AccountPage_IsLocked_Boolean"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -83,7 +88,7 @@
       <button
         class="ui-button primary"
         type="button"
-        :disabled="AccountPage_ActionLoading_Boolean"
+        :disabled="AccountPage_ActionLoading_Boolean || AccountPage_IsLocked_Boolean"
         @click="AccountPage_SubmitLogin_AsyncFunction"
       >
         登录
@@ -96,7 +101,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
   App_AuthState_Object: {
@@ -131,6 +136,7 @@ const AccountPage_LoginForm_Object = reactive({
 const AccountPage_ActionLoading_Boolean = ref(false);
 const AccountPage_ShowPassword_Boolean = ref(false);
 const AccountPage_ShowPassphrase_Boolean = ref(false);
+const AccountPage_IsLocked_Boolean = ref(false);
 
 watch(
   () => props.App_Passphrase_String,
@@ -162,6 +168,7 @@ const AccountPage_SubmitLogin_AsyncFunction = async () => {
       });
       props.setApp_Passphrase_String(AccountPage_LoginForm_Object.passphrase);
       props.App_Notify_Function('success', res.mock ? '测试账户登录成功' : '登录成功');
+      AccountPage_IsLocked_Boolean.value = true;
     } else {
       props.App_Notify_Function('error', res.stderr || res.error || '登录失败');
     }
@@ -172,23 +179,34 @@ const AccountPage_SubmitLogin_AsyncFunction = async () => {
   }
 };
 
-const AccountPage_CheckAuth_AsyncFunction = async () => {
+const AccountPage_CheckAuth_AsyncFunction = async (options = {}) => {
+  const { silent = false } = options;
   const passphrase = AccountPage_LoginForm_Object.passphrase || props.App_Passphrase_String;
   if (!passphrase) {
-    props.App_Notify_Function('warning', '请先输入加密密钥');
+    if (!silent) {
+      props.App_Notify_Function('warning', '请先输入加密密钥');
+    }
     return;
   }
   try {
     const res = await window.electronAPI.authInfo({ passphrase });
     if (res.ok) {
       const message = res.mock ? '测试账户已登录' : res.stdout || res.message || '已登录';
-      props.App_Notify_Function('info', message);
+      if (!silent) {
+        props.App_Notify_Function('info', message);
+      }
+      AccountPage_IsLocked_Boolean.value = true;
     } else {
       const message = res.stderr || res.error || '未登录';
-      props.App_Notify_Function('warning', message);
+      if (!silent) {
+        props.App_Notify_Function('warning', message);
+      }
+      AccountPage_IsLocked_Boolean.value = false;
     }
   } catch (error) {
-    props.App_Notify_Function('error', error.message || '查询失败');
+    if (!silent) {
+      props.App_Notify_Function('error', error.message || '查询失败');
+    }
   }
 };
 
@@ -198,6 +216,7 @@ const AccountPage_Logout_AsyncFunction = async () => {
     if (res.ok) {
       props.setApp_AuthState_Object({ email: '', loggedIn: false, isTest: false });
       props.App_Notify_Function('info', '已退出登录');
+      AccountPage_IsLocked_Boolean.value = false;
     } else {
       props.App_Notify_Function('error', res.stderr || res.error || '退出失败');
     }
@@ -205,4 +224,8 @@ const AccountPage_Logout_AsyncFunction = async () => {
     props.App_Notify_Function('error', error.message || '退出失败');
   }
 };
+
+onMounted(() => {
+  AccountPage_CheckAuth_AsyncFunction({ silent: true });
+});
 </script>
