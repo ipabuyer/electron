@@ -6,7 +6,7 @@ const initSqlJs = require('sql.js');
 
 const DB_FILE = 'PurchasedAppDb.db';
 const PASSPHRASE_FILE = 'passphrase.txt';
-const COUNTRY_FILE = 'country.txt';
+const SETTINGS_FILE = 'settings.json';
 const DOWNLOADS_DIR = 'downloads';
 const ALLOWED_STATUSES = new Set(['purchased', 'owned']);
 
@@ -157,17 +157,34 @@ const writePassphrase = async (value) => {
   return true;
 };
 
-const readCountry = async () => {
+const readSettings = () => {
   ensureDirectories();
-  const countryPath = path.join(getBaseDir(), COUNTRY_FILE);
-  if (!fs.existsSync(countryPath)) return '';
-  return fs.readFileSync(countryPath, 'utf-8').trim();
+  const settingsPath = path.join(getBaseDir(), SETTINGS_FILE);
+  if (!fs.existsSync(settingsPath)) return {};
+  try {
+    const raw = fs.readFileSync(settingsPath, 'utf-8');
+    return JSON.parse(raw || '{}');
+  } catch (_error) {
+    return {};
+  }
+};
+
+const writeSettings = (next) => {
+  ensureDirectories();
+  const settingsPath = path.join(getBaseDir(), SETTINGS_FILE);
+  fs.writeFileSync(settingsPath, JSON.stringify(next, null, 2), 'utf-8');
+  return true;
+};
+
+const readCountry = async () => {
+  const settings = readSettings();
+  return (settings.country || '').trim();
 };
 
 const writeCountry = async (value) => {
-  ensureDirectories();
-  const countryPath = path.join(getBaseDir(), COUNTRY_FILE);
-  fs.writeFileSync(countryPath, (value || '').trim(), 'utf-8');
+  const settings = readSettings();
+  settings.country = (value || '').trim();
+  writeSettings(settings);
   return true;
 };
 
