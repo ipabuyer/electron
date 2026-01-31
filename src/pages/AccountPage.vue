@@ -15,12 +15,32 @@
       </label>
       <label class="field">
         <span>密码</span>
-        <input
-          v-model="AccountPage_LoginForm_Object.password"
-          class="ui-input"
-          type="password"
-          autocomplete="current-password"
-        />
+        <div class="password-field">
+          <input
+            v-model="AccountPage_LoginForm_Object.password"
+            class="ui-input"
+            :type="AccountPage_ShowPassword_Boolean ? 'text' : 'password'"
+            autocomplete="current-password"
+          />
+          <button
+            class="eye-button"
+            type="button"
+            aria-label="按住显示密码"
+            @mousedown="AccountPage_ShowPassword_Boolean = true"
+            @mouseup="AccountPage_ShowPassword_Boolean = false"
+            @mouseleave="AccountPage_ShowPassword_Boolean = false"
+            @touchstart.prevent="AccountPage_ShowPassword_Boolean = true"
+            @touchend="AccountPage_ShowPassword_Boolean = false"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
+              />
+              <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
       </label>
       <label class="field">
         <span>双重验证码（可选）</span>
@@ -29,12 +49,32 @@
       </label>
       <label class="field">
         <span>加密密钥（keychain passphrase）</span>
-        <input
-          v-model="AccountPage_LoginForm_Object.passphrase"
-          class="ui-input"
-          type="password"
-          @input="props.setApp_Passphrase_String(AccountPage_LoginForm_Object.passphrase)"
-        />
+        <div class="password-field">
+          <input
+            v-model="AccountPage_LoginForm_Object.passphrase"
+            class="ui-input"
+            :type="AccountPage_ShowPassphrase_Boolean ? 'text' : 'password'"
+            @input="props.setApp_Passphrase_String(AccountPage_LoginForm_Object.passphrase)"
+          />
+          <button
+            class="eye-button"
+            type="button"
+            aria-label="按住显示密钥"
+            @mousedown="AccountPage_ShowPassphrase_Boolean = true"
+            @mouseup="AccountPage_ShowPassphrase_Boolean = false"
+            @mouseleave="AccountPage_ShowPassphrase_Boolean = false"
+            @touchstart.prevent="AccountPage_ShowPassphrase_Boolean = true"
+            @touchend="AccountPage_ShowPassphrase_Boolean = false"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
+              />
+              <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
         <small class="hint">修改密钥需先退出登录并重新登录</small>
       </label>
     </div>
@@ -89,6 +129,8 @@ const AccountPage_LoginForm_Object = reactive({
 });
 
 const AccountPage_ActionLoading_Boolean = ref(false);
+const AccountPage_ShowPassword_Boolean = ref(false);
+const AccountPage_ShowPassphrase_Boolean = ref(false);
 
 watch(
   () => props.App_Passphrase_String,
