@@ -65,6 +65,7 @@
     },
     "appx": {
       "identityName": "IPAbuyer.IPAbuyer",
+      "certificateSha1": "${THUMBPRINT}",
       "publisher": "CN=68F867E4-B304-4B5D-9818-31B1910E0771",
       "languages": [
         "zh-CN"
