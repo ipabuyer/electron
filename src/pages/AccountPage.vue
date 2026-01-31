@@ -90,16 +90,18 @@
     </div>
 
     <div class="button-row">
+      <button class="ui-button primary" type="button" @click="AccountPage_CheckAuth_AsyncFunction">
+        查询登录状态
+      </button>
       <button
-        class="ui-button primary"
+        class="ui-button ghost"
         type="button"
         :disabled="AccountPage_ActionLoading_Boolean || AccountPage_IsLocked_Boolean"
         @click="AccountPage_SubmitLogin_AsyncFunction"
       >
         登录
       </button>
-      <button class="ui-button ghost" type="button" @click="AccountPage_CheckAuth_AsyncFunction">查询登录状态</button>
-      <button class="ui-button text" type="button" @click="AccountPage_Logout_AsyncFunction">退出登录</button>
+      <button class="ui-button danger" type="button" @click="AccountPage_Logout_AsyncFunction">退出登录</button>
     </div>
 
   </section>
