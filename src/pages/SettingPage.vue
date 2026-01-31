@@ -4,31 +4,35 @@
 
     <div class="form-grid">
       <label class="field">
-        <span>国家代码（ISO 3166-1 Alpha-2）</span>
-        <input
-          class="ui-input"
-          :value="App_CountryCode_String"
-          @input="SettingPage_OnCountryInput_Function"
-        />
+        <span>国家代码</span>
+        <div class="field-row">
+          <input
+            class="ui-input"
+            :value="App_CountryCode_String"
+            @input="SettingPage_OnCountryInput_Function"
+          />
+          <button class="ui-button ghost" type="button" @click="SettingPage_ConfirmCountry_Function">
+            确认
+          </button>
+        </div>
         <small class="hint">默认：cn</small>
       </label>
       <label class="field">
         <span>开发者官方网站</span>
-        <input
-          class="ui-input"
-          :value="App_DeveloperSite_String"
-          @input="SettingPage_OnDeveloperInput_Function"
-        />
-        <small class="hint">默认：ipa.blazesnow.com</small>
+        <div class="field-row">
+          <span class="muted">{{ App_DeveloperSite_String || 'ipa.blazesnow.com' }}</span>
+          <button class="ui-button ghost" type="button" @click="SettingPage_OpenDeveloperSite_Function">
+            打开
+          </button>
+        </div>
       </label>
     </div>
 
-    <div class="button-row">
-      <button class="ui-button ghost" type="button" @click="SettingPage_OpenDeveloperSite_Function">
-        打开开发者网站
-      </button>
+    <div class="danger-panel">
+      <div class="danger-title">清空本地数据库</div>
+      <div class="danger-desc">清空后已购买/已拥有记录将被移除，请谨慎操作。</div>
       <button class="ui-button danger" type="button" @click="SettingPage_ClearOpen_Boolean = true">
-        清空本地数据库
+        立即清空
       </button>
     </div>
 
@@ -65,10 +69,6 @@ const props = defineProps({
     type: Function,
     required: true
   },
-  setApp_DeveloperSite_String: {
-    type: Function,
-    required: true
-  },
   setApp_StatusRefreshSeed_Number: {
     type: Function,
     required: true
@@ -84,8 +84,13 @@ const SettingPage_OnCountryInput_Function = (event) => {
   props.setApp_CountryCode_String(SettingPage_NormalizeCountryCode_Function(event.target.value));
 };
 
-const SettingPage_OnDeveloperInput_Function = (event) => {
-  props.setApp_DeveloperSite_String(event.target.value);
+const SettingPage_ConfirmCountry_Function = () => {
+  const value = props.App_CountryCode_String || '';
+  if (!/^[a-z]{2}$/i.test(value)) {
+    props.App_Notify_Function('warning', '请输入正确的国家代码（两位字母）');
+    return;
+  }
+  props.App_Notify_Function('success', `国家代码已设置为 ${value.toLowerCase()}`);
 };
 
 const SettingPage_OpenDeveloperSite_Function = async () => {

@@ -100,7 +100,6 @@
           :App_DeveloperSite_String="App_DeveloperSite_String"
           :App_Notify_Function="App_Notify_Function"
           :setApp_CountryCode_String="App_SetCountryCode_Function"
-          :setApp_DeveloperSite_String="App_SetDeveloperSite_Function"
           :setApp_StatusRefreshSeed_Number="App_IncrementStatusRefreshSeed_Function"
         />
       </main>
@@ -194,9 +193,6 @@ const App_SetCountryCode_Function = (value) => {
   App_CountryCode_String.value = value;
 };
 
-const App_SetDeveloperSite_Function = (value) => {
-  App_DeveloperSite_String.value = value;
-};
 
 const App_IncrementStatusRefreshSeed_Function = () => {
   App_StatusRefreshSeed_Number.value += 1;
