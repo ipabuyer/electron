@@ -1,7 +1,6 @@
 ﻿<template>
   <section class="page narrow">
     <h2 class="page-title">账户</h2>
-    <p class="muted">当前状态：{{ App_AuthState_Object.loggedIn ? `已登录（${App_AuthState_Object.email}）` : '未登录' }}</p>
     <div class="divider"></div>
 
     <div class="form-grid">
@@ -53,14 +52,6 @@
       <button class="ui-button text" type="button" @click="AccountPage_Logout_AsyncFunction">退出登录</button>
     </div>
 
-    <p v-if="AccountPage_AuthInfo_String" class="muted">状态信息：{{ AccountPage_AuthInfo_String }}</p>
-
-    <div class="notice">
-      <strong>测试账户：</strong>
-      test / test（购买或下载会直接成功，仅用于界面测试）。新创建的苹果账号必须先在设备 App Store 完成一次购买后才能用于本软件。
-      如收不到验证码，请打开 https://account.apple.com/ 获取双重验证码后填入本软件。
-    </div>
-    <p class="caption">注意：只有 ipatool 处于登录状态时才存在加密密钥。</p>
   </section>
 </template>
 
@@ -98,7 +89,6 @@ const AccountPage_LoginForm_Object = reactive({
 });
 
 const AccountPage_ActionLoading_Boolean = ref(false);
-const AccountPage_AuthInfo_String = ref('');
 
 watch(
   () => props.App_Passphrase_String,
@@ -150,11 +140,9 @@ const AccountPage_CheckAuth_AsyncFunction = async () => {
     const res = await window.electronAPI.authInfo({ passphrase });
     if (res.ok) {
       const message = res.mock ? '测试账户已登录' : res.stdout || res.message || '已登录';
-      AccountPage_AuthInfo_String.value = message;
       props.App_Notify_Function('info', message);
     } else {
       const message = res.stderr || res.error || '未登录';
-      AccountPage_AuthInfo_String.value = message;
       props.App_Notify_Function('warning', message);
     }
   } catch (error) {
