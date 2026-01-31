@@ -269,7 +269,13 @@ const HomePage_HandleMarkStatus_AsyncFunction = async (status, targetIds) => {
     }));
     await window.electronAPI.setAppStatuses(rows);
     await HomePage_LoadStatuses_AsyncFunction();
-    props.App_Notify_Function('success', `已标记 ${ids.length} 个为${HomePage_StatusLabel_Function(status)}`);
+    if (status === 'purchased') {
+      rows.forEach((row) => {
+        props.App_Notify_Function('success', `${row.appName || row.bundleId} 已购买`);
+      });
+    } else {
+      props.App_Notify_Function('success', `已标记 ${ids.length} 个为${HomePage_StatusLabel_Function(status)}`);
+    }
   } catch (error) {
     props.App_Notify_Function('error', error.message || '标记失败');
   } finally {
@@ -287,6 +293,9 @@ const HomePage_HandlePurchase_AsyncFunction = async (bundleIds) => {
   HomePage_ActionLoading_Boolean.value = true;
   try {
     const appNameMap = Object.fromEntries(HomePage_Apps_Array.value.map((app) => [app.bundleId, app.name]));
+    ids.forEach((bundleId) => {
+      props.App_Notify_Function('info', `${appNameMap[bundleId] || bundleId} 正在购买`);
+    });
     const payload = {
       bundleIds: [...ids],
       passphrase: props.App_Passphrase_String || '',
@@ -296,15 +305,24 @@ const HomePage_HandlePurchase_AsyncFunction = async (bundleIds) => {
     const res = await window.electronAPI.purchase(JSON.parse(JSON.stringify(payload)));
     if (res.ok) {
       await HomePage_LoadStatuses_AsyncFunction();
-      props.App_Notify_Function('success', '购买完成');
-    } else if (Array.isArray(res.ownedApps) && res.ownedApps.length) {
-      await HomePage_LoadStatuses_AsyncFunction();
-      const names = res.ownedApps
-        .map((item) => item.appName || item.bundleId)
-        .filter(Boolean)
-        .join('、');
-      props.App_Notify_Function('warning', `${names} 疑似已拥有，已归类到“已拥有”`);
+      if (Array.isArray(res.results) && res.results.length) {
+        res.results.forEach((item) => {
+          if (item.ok) {
+            const name = appNameMap[item.bundleId] || item.bundleId;
+            props.App_Notify_Function('success', `${name} 购买成功`);
+          }
+        });
+      } else {
+        props.App_Notify_Function('success', '购买成功');
+      }
     } else {
+      if (Array.isArray(res.ownedApps) && res.ownedApps.length) {
+        await HomePage_LoadStatuses_AsyncFunction();
+        res.ownedApps.forEach((item) => {
+          const name = item.appName || item.bundleId || '该应用';
+          props.App_Notify_Function('warning', `${name} 疑似已拥有，已归类到“已拥有”`);
+        });
+      }
       const detail =
         res.error ||
         res.message ||

@@ -142,18 +142,31 @@ const App_Snackbar_Object = reactive({
   severity: 'info',
   message: ''
 });
+const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarTimer_Number = 0;
 
-const App_Notify_Function = (severity, message) => {
+const App_ShowNextSnackbar_Function = () => {
+  if (!App_SnackbarQueue_Array.value.length) {
+    App_Snackbar_Object.open = false;
+    return;
+  }
+  const next = App_SnackbarQueue_Array.value.shift();
   App_Snackbar_Object.open = true;
-  App_Snackbar_Object.severity = severity;
-  App_Snackbar_Object.message = message;
+  App_Snackbar_Object.severity = next.severity;
+  App_Snackbar_Object.message = next.message;
   if (App_SnackbarTimer_Number) {
     clearTimeout(App_SnackbarTimer_Number);
   }
   App_SnackbarTimer_Number = setTimeout(() => {
-    App_Snackbar_Object.open = false;
+    App_ShowNextSnackbar_Function();
   }, 3200);
+};
+
+const App_Notify_Function = (severity, message) => {
+  App_SnackbarQueue_Array.value.push({ severity, message });
+  if (!App_Snackbar_Object.open) {
+    App_ShowNextSnackbar_Function();
+  }
 };
 
 const App_ShowSearch_Boolean = computed(() => App_ActivePage_String.value === 'home');
