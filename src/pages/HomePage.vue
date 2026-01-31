@@ -49,13 +49,13 @@
                     :indeterminate.prop="HomePage_PartialSelect_Boolean"
                     @change="HomePage_ToggleSelectAll_Function"
                   />
-                  <span>App名称与图标</span>
+                  <span>App名称</span>
                 </label>
               </th>
-              <th>AppID</th>
-              <th>开发者</th>
-              <th>版本号</th>
-              <th>价格</th>
+              <th class="col-id">AppID</th>
+              <th class="col-seller">开发者</th>
+              <th class="col-version">版本号</th>
+              <th class="col-price">价格</th>
             </tr>
           </thead>
           <tbody>

@@ -294,12 +294,14 @@ a {
 
 .table-container {
   max-height: calc(100vh - 220px);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .data-table th,
@@ -308,6 +310,9 @@ a {
   border-bottom: 1px solid var(--border);
   text-align: left;
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .data-table thead th {
@@ -333,6 +338,23 @@ a {
 
 .col-app {
   min-width: 240px;
+}
+
+.col-id {
+  width: 28%;
+}
+
+.col-seller {
+  width: 20%;
+}
+
+.col-version {
+  width: 12%;
+}
+
+.col-price {
+  width: 10%;
+  min-width: 56px;
 }
 
 .app-cell {
