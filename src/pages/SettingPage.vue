@@ -37,6 +37,12 @@
           <span>下载路径</span>
           <div class="field-row">
             <span class="muted">{{ App_DownloadPath_String || '未设置' }}</span>
+            <button class="ui-button ghost" type="button" @click="SettingPage_OpenDownloadPath_Function">
+              打开
+            </button>
+            <button class="ui-button ghost" type="button" @click="SettingPage_PickDownloadPath_Function">
+              更改路径
+            </button>
           </div>
         </label>
       </div>
@@ -87,6 +93,10 @@ const props = defineProps({
     type: Function,
     required: true
   },
+  setApp_DownloadPath_String: {
+    type: Function,
+    required: true
+  },
   setApp_StatusRefreshSeed_Number: {
     type: Function,
     required: true
@@ -126,6 +136,32 @@ const SettingPage_OpenDeveloperSite_Function = async () => {
   const res = await window.electronAPI.openExternal(url);
   if (!res?.ok) {
     props.App_Notify_Function('error', res?.error || '打开失败');
+  }
+};
+
+const SettingPage_OpenDownloadPath_Function = async () => {
+  const path = props.App_DownloadPath_String;
+  if (!path) {
+    props.App_Notify_Function('warning', '下载路径为空');
+    return;
+  }
+  const res = await window.electronAPI.openDownloadPath(path);
+  if (!res?.ok && !res?.canceled) {
+    props.App_Notify_Function('error', res?.error || '打开失败');
+  }
+};
+
+const SettingPage_PickDownloadPath_Function = async () => {
+  if (!window.electronAPI?.pickDownloadPath) {
+    props.App_Notify_Function('warning', '无法选择下载路径');
+    return;
+  }
+  const res = await window.electronAPI.pickDownloadPath();
+  if (res?.ok && res.path) {
+    props.App_Notify_Function('success', '下载路径已更新');
+    props.setApp_DownloadPath_String(res.path);
+  } else if (!res?.canceled) {
+    props.App_Notify_Function('error', res?.error || '设置失败');
   }
 };
 

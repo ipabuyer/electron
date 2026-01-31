@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveCountry: (value) => ipcRenderer.invoke('country:write', value),
   readDownloadPath: () => ipcRenderer.invoke('downloadPath:read'),
   saveDownloadPath: (value) => ipcRenderer.invoke('downloadPath:write', value),
+  openDownloadPath: (value) => ipcRenderer.invoke('downloadPath:open', value),
+  pickDownloadPath: () => ipcRenderer.invoke('downloadPath:pick'),
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
   windowMinimize: () => ipcRenderer.invoke('window:minimize'),
   windowMaximize: () => ipcRenderer.invoke('window:maximize'),

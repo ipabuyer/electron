@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('node:path');
 const {
   ensureDatabase,
@@ -80,6 +80,31 @@ ipcMain.handle('country:read', async () => readCountry());
 ipcMain.handle('country:write', async (_event, value) => writeCountry(value));
 ipcMain.handle('downloadPath:read', async () => readDownloadPath());
 ipcMain.handle('downloadPath:write', async (_event, value) => writeDownloadPath(value));
+ipcMain.handle('downloadPath:open', async (_event, value) => {
+  try {
+    await shell.openPath(value);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+ipcMain.handle('downloadPath:pick', async (event) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const result = await dialog.showOpenDialog(win, {
+      title: '选择下载路径',
+      properties: ['openDirectory', 'createDirectory']
+    });
+    if (result.canceled || !result.filePaths?.length) {
+      return { ok: false, canceled: true };
+    }
+    const selected = result.filePaths[0];
+    await writeDownloadPath(selected);
+    return { ok: true, path: selected };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
 ipcMain.handle('app:openExternal', async (_event, url) => {
   try {
     await shell.openExternal(url);

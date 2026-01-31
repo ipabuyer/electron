@@ -101,6 +101,7 @@
           :App_DeveloperSite_String="App_DeveloperSite_String"
           :App_Notify_Function="App_Notify_Function"
           :setApp_CountryCode_String="App_SetCountryCode_Function"
+          :setApp_DownloadPath_String="App_SetDownloadPath_Function"
           :setApp_StatusRefreshSeed_Number="App_IncrementStatusRefreshSeed_Function"
         />
       </main>
@@ -226,6 +227,10 @@ const App_SetPassphrase_Function = (value) => {
 
 const App_SetCountryCode_Function = (value) => {
   App_CountryCode_String.value = value;
+};
+
+const App_SetDownloadPath_Function = (value) => {
+  App_DownloadPath_String.value = value;
 };
 
 
