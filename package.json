@@ -1,6 +1,6 @@
 {
   "name": "ipabuyer-electron",
-  "version": "2026.1.23.1",
+  "version": "2026.1.31.1",
   "description": "IPAbuyer Electron client",
   "author": "IPAbuyer",
   "repository": {
@@ -17,7 +17,7 @@
     "build:renderer": "cross-env NODE_ENV=production vite build",
     "build:app": "cross-env NODE_ENV=production BUILD_ARCH=x64 electron-builder --config electron-builder.config.cjs",
     "build:app:x64": "cross-env NODE_ENV=production BUILD_ARCH=x64 electron-builder --config electron-builder.config.cjs",
-    "build:app:arm64": "cross-env NODE_ENV=production BUILD_ARCH=arm64 electron-builder --config electron-builder.config.cjs",
+    "build:app:ARM64": "cross-env NODE_ENV=production BUILD_ARCH=arm64 electron-builder --config electron-builder.config.cjs",
     "build": "npm run build:renderer && npm run build:app"
   },
   "dependencies": {
