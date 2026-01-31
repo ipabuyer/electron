@@ -47,7 +47,12 @@
       </label>
       <label class="field">
         <span>双重验证码（可选）</span>
-        <input v-model="AccountPage_LoginForm_Object.authCode" class="ui-input" type="text" :disabled="AccountPage_IsLocked_Boolean" />
+        <input
+          v-model="AccountPage_LoginForm_Object.authCode"
+          class="ui-input"
+          type="text"
+          :disabled="AccountPage_IsLocked_Boolean"
+        />
         <small class="hint">可先只输入邮箱+密码获取验证码，再输入验证码登录</small>
       </label>
       <label class="field">
