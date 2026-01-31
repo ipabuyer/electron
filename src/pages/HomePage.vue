@@ -324,7 +324,7 @@ const HomePage_HandlePurchase_AsyncFunction = async (bundleIds) => {
           res.results?.find((item) => !item.ok)?.stderr ||
           res.results?.find((item) => !item.ok)?.output ||
           '购买失败';
-        props.App_Notify_Function('error', `${appName} 购买失败：${detail}`);
+        props.App_Notify_Function('error', `${appName} 购买失败：${detail}`, { copyText: detail });
       }
     }
   } catch (error) {

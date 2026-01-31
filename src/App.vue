@@ -115,6 +115,14 @@
         >
           <span class="snackbar-dot" aria-hidden="true"></span>
           <span class="snackbar-text">{{ item.message }}</span>
+          <button
+            v-if="item.copyText"
+            class="snackbar-copy"
+            type="button"
+            @click="App_CopyText_Function(item.copyText)"
+          >
+            复制
+          </button>
         </div>
       </transition-group>
     </div>
@@ -147,12 +155,38 @@ const App_Searching_Boolean = ref(false);
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
 
-const App_Notify_Function = (severity, message) => {
+const App_Notify_Function = (severity, message, options = {}) => {
   const id = `${Date.now()}-${App_SnackbarSeed_Number++}`;
-  App_SnackbarQueue_Array.value.push({ id, severity, message });
+  App_SnackbarQueue_Array.value.push({
+    id,
+    severity,
+    message,
+    copyText: options.copyText || ''
+  });
   setTimeout(() => {
     App_SnackbarQueue_Array.value = App_SnackbarQueue_Array.value.filter((item) => item.id !== id);
   }, 3200);
+};
+
+const App_CopyText_Function = async (text) => {
+  if (!text) return;
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  } catch (_error) {
+    // ignore copy errors
+  }
 };
 
 const App_ShowSearch_Boolean = computed(() => App_ActivePage_String.value === 'home');

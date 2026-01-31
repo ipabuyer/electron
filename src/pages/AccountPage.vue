@@ -175,10 +175,12 @@ const AccountPage_SubmitLogin_AsyncFunction = async () => {
       props.App_Notify_Function('success', res.mock ? '测试账户登录成功' : '登录成功');
       AccountPage_IsLocked_Boolean.value = true;
     } else {
-      props.App_Notify_Function('error', res.stderr || res.error || '登录失败');
+      const detail = res.stderr || res.error || '登录失败';
+      props.App_Notify_Function('error', detail, { copyText: detail });
     }
   } catch (error) {
-    props.App_Notify_Function('error', error.message || '登录失败');
+    const detail = error.message || '登录失败';
+    props.App_Notify_Function('error', detail, { copyText: detail });
   } finally {
     AccountPage_ActionLoading_Boolean.value = false;
   }
@@ -198,19 +200,20 @@ const AccountPage_CheckAuth_AsyncFunction = async (options = {}) => {
     if (res.ok) {
       const message = res.mock ? '测试账户已登录' : res.stdout || res.message || '已登录';
       if (!silent) {
-        props.App_Notify_Function('info', message);
+        props.App_Notify_Function('info', message, { copyText: res.stdout || message });
       }
       AccountPage_IsLocked_Boolean.value = true;
     } else {
       const message = res.stderr || res.error || '未登录';
       if (!silent) {
-        props.App_Notify_Function('warning', message);
+        props.App_Notify_Function('warning', message, { copyText: message });
       }
       AccountPage_IsLocked_Boolean.value = false;
     }
   } catch (error) {
     if (!silent) {
-      props.App_Notify_Function('error', error.message || '查询失败');
+      const detail = error.message || '查询失败';
+      props.App_Notify_Function('error', detail, { copyText: detail });
     }
   }
 };
@@ -223,10 +226,12 @@ const AccountPage_Logout_AsyncFunction = async () => {
       props.App_Notify_Function('info', '已退出登录');
       AccountPage_IsLocked_Boolean.value = false;
     } else {
-      props.App_Notify_Function('error', res.stderr || res.error || '退出失败');
+      const detail = res.stderr || res.error || '退出失败';
+      props.App_Notify_Function('error', detail, { copyText: detail });
     }
   } catch (error) {
-    props.App_Notify_Function('error', error.message || '退出失败');
+    const detail = error.message || '退出失败';
+    props.App_Notify_Function('error', detail, { copyText: detail });
   }
 };
 

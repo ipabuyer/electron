@@ -705,6 +705,7 @@ input[type='checkbox'] {
 
 .snackbar {
   position: relative;
+  pointer-events: auto;
 }
 
 .snackbar-dot {
@@ -712,6 +713,19 @@ input[type='checkbox'] {
   height: 8px;
   border-radius: 50%;
   background: var(--primary);
+}
+
+.snackbar-copy {
+  margin-left: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.snackbar-copy:hover {
+  color: var(--text-main);
 }
 
 .snackbar-info .snackbar-dot {
