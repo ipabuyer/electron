@@ -94,7 +94,7 @@
         查询登录状态
       </button>
       <button
-        class="ui-button ghost"
+        class="ui-button outline"
         type="button"
         :disabled="AccountPage_ActionLoading_Boolean || AccountPage_IsLocked_Boolean"
         @click="AccountPage_SubmitLogin_AsyncFunction"
