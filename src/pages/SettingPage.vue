@@ -3,32 +3,37 @@
     <h2 class="page-title">设置</h2>
 
     <div class="form-grid">
-      <label class="field">
-        <span>国家代码</span>
-        <div class="field-row">
-          <input
-            class="ui-input"
-            :value="App_CountryCode_String"
-            @input="SettingPage_OnCountryInput_Function"
-          />
-          <button class="ui-button ghost" type="button" @click="SettingPage_ConfirmCountry_Function">
-            确认
-          </button>
-        </div>
-        <small class="hint">默认：cn</small>
-      </label>
-      <label class="field">
-        <span>开发者官方网站</span>
-        <div class="field-row">
-          <span class="muted">{{ App_DeveloperSite_String || 'ipa.blazesnow.com' }}</span>
-          <button class="ui-button ghost" type="button" @click="SettingPage_OpenDeveloperSite_Function">
-            打开
-          </button>
-        </div>
-      </label>
+      <div class="panel setting-card">
+        <label class="field">
+          <span>国家代码</span>
+          <div class="field-row">
+            <input
+              class="ui-input"
+              :value="App_CountryCode_String"
+              @input="SettingPage_OnCountryInput_Function"
+            />
+            <button class="ui-button ghost" type="button" @click="SettingPage_ConfirmCountry_Function">
+              确认
+            </button>
+          </div>
+          <small class="hint">默认：cn</small>
+        </label>
+      </div>
+
+      <div class="panel setting-card">
+        <label class="field">
+          <span>开发者官方网站</span>
+          <div class="field-row">
+            <span class="muted">{{ App_DeveloperSite_String || 'ipa.blazesnow.com' }}</span>
+            <button class="ui-button ghost" type="button" @click="SettingPage_OpenDeveloperSite_Function">
+              打开
+            </button>
+          </div>
+        </label>
+      </div>
     </div>
 
-    <div class="danger-panel">
+    <div class="panel setting-card danger-panel">
       <div class="danger-title">清空本地数据库</div>
       <div class="danger-desc">清空后已购买/已拥有记录将被移除，请谨慎操作。</div>
       <button class="ui-button danger" type="button" @click="SettingPage_ClearOpen_Boolean = true">

@@ -252,6 +252,13 @@ a {
   box-shadow: var(--shadow);
 }
 
+.setting-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+
 .panel-row {
   display: flex;
   align-items: center;
@@ -399,10 +406,17 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .field-row .ui-input {
   flex: 1;
+  min-width: 200px;
+}
+
+.field-row .ui-button {
+  margin-left: auto;
 }
 
 .field {
@@ -447,13 +461,8 @@ a {
 
 .danger-panel {
   margin-top: 4px;
-  padding: 16px;
-  border-radius: 12px;
   border: 1px solid rgba(220, 38, 38, 0.35);
   background: rgba(220, 38, 38, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .danger-title {
