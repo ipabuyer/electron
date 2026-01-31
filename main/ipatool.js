@@ -22,10 +22,12 @@ const createLineBuffer = (onLine) => {
 
 function getIpatoolPath() {
   const arch = process.arch;
-  if (arch === 'arm64') {
-    return path.join(__dirname, '../include/ipatool-2.2.0-windows-arm64.exe');
+  const name =
+    arch === 'arm64' ? 'ipatool-2.2.0-windows-arm64.exe' : 'ipatool-2.2.0-windows-amd64.exe';
+  if (process.env.NODE_ENV === 'development') {
+    return path.join(__dirname, '../include', name);
   }
-  return path.join(__dirname, '../include/ipatool-2.2.0-windows-amd64.exe');
+  return path.join(process.resourcesPath, 'app.asar.unpacked', 'include', name);
 }
 
 const ensureBinary = () => {

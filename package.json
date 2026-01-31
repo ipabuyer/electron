@@ -15,7 +15,9 @@
     "electron:wait": "wait-on http://localhost:5173 && npm run electron",
     "start": "concurrently -k -n \"renderer,electron\" -c \"cyan,green\" --success first \"npm:dev\" \"npm:electron:wait\"",
     "build:renderer": "cross-env NODE_ENV=production vite build",
-    "build:app": "cross-env NODE_ENV=production electron-builder",
+    "build:app": "cross-env NODE_ENV=production BUILD_ARCH=x64 electron-builder --config electron-builder.config.cjs",
+    "build:app:x64": "cross-env NODE_ENV=production BUILD_ARCH=x64 electron-builder --config electron-builder.config.cjs",
+    "build:app:arm64": "cross-env NODE_ENV=production BUILD_ARCH=arm64 electron-builder --config electron-builder.config.cjs",
     "build": "npm run build:renderer && npm run build:app"
   },
   "dependencies": {
@@ -33,43 +35,5 @@
     "vite": "^5.2.9",
     "wait-on": "^7.2.0"
   },
-  "build": {
-    "appId": "IPAbuyer.IPAbuyer",
-    "productName": "IPAbuyer",
-    "buildVersion": "0.2.0.0",
-    "icon": "assets/Icon.ico",
-    "directories": {
-      "buildResources": "assets",
-      "output": "release"
-    },
-    "files": [
-      "node_modules/**/*",
-      "dist/**/*",
-      "main/**/*",
-      "include/**/*",
-      "db/**/*",
-      "package.json"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "appx",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "appx": {
-      "identityName": "IPAbuyer.IPAbuyer",
-      "publisher": "CN=68F867E4-B304-4B5D-9818-31B1910E0771",
-      "languages": [
-        "zh-CN"
-      ],
-      "displayName": "IPAbuyer",
-      "publisherDisplayName": "IPAbuyer",
-      "applicationId": "IPAbuyer",
-      "backgroundColor": "#ffffff"
-    }
-  }
+  "build": "electron-builder.config.cjs"
 }
