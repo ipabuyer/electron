@@ -19,8 +19,6 @@
     "build": "npm run build:renderer && npm run build:app"
   },
   "dependencies": {
-    "@electron-uikit/core": "^1.1.0",
-    "@electron-uikit/titlebar": "^1.4.0",
     "axios": "^1.13.2",
     "electron-windows-store": "^2.1.0",
     "sql.js": "^1.13.0",

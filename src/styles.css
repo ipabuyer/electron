@@ -94,59 +94,43 @@ a {
   overflow: auto;
 }
 
-.titlebar {
-  position: relative;
-  height: var(--titlebar-height);
+.app-topbar {
+  height: 56px;
+  display: grid;
+  grid-template-columns: auto minmax(260px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
-  z-index: 20000;
-}
-
-.titlebar title-bar {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.titlebar-overlay {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: 1fr minmax(260px, 520px) 1fr;
-  align-items: center;
-  padding: 0 16px;
-  pointer-events: none;
   -webkit-app-region: drag;
 }
 
-.titlebar-left,
-.titlebar-center,
-.titlebar-right {
+.topbar-left,
+.topbar-center,
+.topbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
-  pointer-events: auto;
+  gap: 4px;
+  justify-content: flex-end;
 }
 
-.titlebar-center {
+.topbar-center {
   justify-content: center;
 }
 
-.titlebar-left {
-  gap: 10px;
-}
-
-.titlebar-title {
+.topbar-title {
   font-weight: 700;
   font-size: 15px;
 }
 
-.titlebar-logo {
-  width: 20px;
-  height: 20px;
+.topbar-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
 }
 
-.titlebar-search {
+.topbar-search {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -155,16 +139,43 @@ a {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 4px 8px;
-  pointer-events: auto;
   -webkit-app-region: no-drag;
 }
 
-.titlebar-input {
+.topbar-input {
   border: none;
   background: transparent;
   flex: 1;
   height: 28px;
   padding: 0 8px;
+}
+
+.window-button {
+  width: 44px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
+
+.window-button:hover {
+  background: var(--bg-elevated);
+}
+
+.window-close:hover {
+  background: rgba(220, 38, 38, 0.18);
+  color: var(--danger);
+}
+
+.window-icon {
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
 }
 
 .sidebar {
@@ -490,6 +501,7 @@ input[type='checkbox'] {
   display: grid;
   place-items: center;
   cursor: pointer;
+  -webkit-app-region: no-drag;
 }
 
 .ui-icon-button .icon {
@@ -617,8 +629,8 @@ input[type='checkbox'] {
 }
 
 @media (max-width: 920px) {
-  .titlebar-overlay {
-    grid-template-columns: 1fr minmax(200px, 1fr) 1fr;
+  .app-topbar {
+    grid-template-columns: auto minmax(200px, 1fr) auto;
   }
 
   .sidebar {

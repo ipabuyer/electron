@@ -1,15 +1,29 @@
 ﻿<template>
   <div class="app-shell">
-    <CustomTitleBar
-      title="IPAbuyer"
-      :is-sidebar-collapsed="App_SidebarCollapsed_Boolean"
-      @toggle-sidebar="App_ToggleSidebar_Function"
-    >
-      <template #center>
-        <div v-if="App_ShowSearch_Boolean" class="titlebar-search">
+    <div class="app-topbar">
+      <div class="topbar-left">
+        <button class="ui-icon-button no-drag" type="button" @click="App_ToggleSidebar_Function">
+          <svg v-if="App_SidebarCollapsed_Boolean" viewBox="0 0 24 24" class="icon" aria-hidden="true">
+            <path
+              d="M4 6h10a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2zm0 7h10a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2zm0 7h10a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg v-else viewBox="0 0 24 24" class="icon" aria-hidden="true">
+            <path
+              d="M4 6h16a1 1 0 0 0 0-2H4a1 1 0 1 0 0 2zm0 7h16a1 1 0 0 0 0-2H4a1 1 0 1 0 0 2zm0 7h16a1 1 0 0 0 0-2H4a1 1 0 1 0 0 2z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+        <img :src="AppIcon" alt="IPAbuyer" class="topbar-logo no-drag" />
+        <span class="topbar-title">IPAbuyer</span>
+      </div>
+      <div class="topbar-center">
+        <div v-if="App_ShowSearch_Boolean" class="topbar-search">
           <input
             v-model="App_SearchTerm_String"
-            class="ui-input titlebar-input no-drag"
+            class="ui-input topbar-input no-drag"
             type="text"
             placeholder="搜索应用"
             autocomplete="off"
@@ -32,8 +46,26 @@
             </svg>
           </button>
         </div>
-      </template>
-    </CustomTitleBar>
+      </div>
+      <div class="topbar-right">
+        <button class="window-button no-drag" type="button" title="最小化" @click="App_WindowMinimize_Function">
+          <svg class="window-icon" viewBox="0 0 12 12" aria-hidden="true">
+            <line x1="2" y1="9" x2="10" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+        <button class="window-button no-drag" type="button" title="最大化/还原" @click="App_WindowMaximize_Function">
+          <svg class="window-icon" viewBox="0 0 12 12" aria-hidden="true">
+            <rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+        </button>
+        <button class="window-button window-close no-drag" type="button" title="关闭" @click="App_WindowClose_Function">
+          <svg class="window-icon" viewBox="0 0 12 12" aria-hidden="true">
+            <line x1="3" y1="3" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            <line x1="9" y1="3" x2="3" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
 
     <div class="app-body">
       <Sidebar
@@ -86,10 +118,10 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
-import CustomTitleBar from './components/CustomTitleBar.vue';
 import HomePage from './pages/HomePage.vue';
 import AccountPage from './pages/AccountPage.vue';
 import SettingPage from './pages/SettingPage.vue';
+import AppIcon from '../assets/Square44x44Logo.scale-200.png';
 
 const App_ActivePage_String = ref('home');
 const App_CountryCode_String = ref('cn');
@@ -134,6 +166,18 @@ const App_ToggleSidebar_Function = () => {
 const App_TriggerSearch_Function = () => {
   if (!App_ShowSearch_Boolean.value || App_Searching_Boolean.value) return;
   App_SearchTrigger_Number.value += 1;
+};
+
+const App_WindowMinimize_Function = () => {
+  window.electronAPI?.windowMinimize?.();
+};
+
+const App_WindowMaximize_Function = () => {
+  window.electronAPI?.windowMaximize?.();
+};
+
+const App_WindowClose_Function = () => {
+  window.electronAPI?.windowClose?.();
 };
 
 const App_SetAuthState_Function = (value) => {

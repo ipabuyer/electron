@@ -1,6 +1,4 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
-const { useUIKit } = require('@electron-uikit/core/main');
-const { registerTitleBarListener, attachTitleBarToWindow } = require('@electron-uikit/titlebar/main');
 const path = require('node:path');
 const {
   ensureDatabase,
@@ -37,8 +35,6 @@ const createWindow = async () => {
     }
   });
 
-  attachTitleBarToWindow(win);
-
   if (isDev) {
     await win.loadURL('http://localhost:5173');
     win.webContents.openDevTools({ mode: 'detach' });
@@ -49,8 +45,6 @@ const createWindow = async () => {
 
 app.whenReady().then(() => {
   app.setAppUserModelId('IPAbuyer.IPAbuyer');
-  useUIKit();
-  registerTitleBarListener();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -85,6 +79,24 @@ ipcMain.handle('app:openExternal', async (_event, url) => {
   } catch (error) {
     return { ok: false, error: error.message };
   }
+});
+
+ipcMain.handle('window:minimize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) win.minimize();
+});
+ipcMain.handle('window:maximize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win) return;
+  if (win.isMaximized()) {
+    win.unmaximize();
+  } else {
+    win.maximize();
+  }
+});
+ipcMain.handle('window:close', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) win.close();
 });
 
 ipcMain.handle('auth:login', async (_event, payload) => {
