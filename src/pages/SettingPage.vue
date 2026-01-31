@@ -31,6 +31,15 @@
           </div>
         </label>
       </div>
+
+      <div class="panel setting-card">
+        <label class="field">
+          <span>下载路径</span>
+          <div class="field-row">
+            <span class="muted">{{ App_DownloadPath_String || '未设置' }}</span>
+          </div>
+        </label>
+      </div>
     </div>
 
     <div class="panel setting-card danger-panel">
@@ -65,6 +74,10 @@ const props = defineProps({
   App_DeveloperSite_String: {
     type: String,
     default: 'ipa.blazesnow.com'
+  },
+  App_DownloadPath_String: {
+    type: String,
+    default: ''
   },
   App_Notify_Function: {
     type: Function,

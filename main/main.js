@@ -9,6 +9,8 @@ const {
   writePassphrase,
   readCountry,
   writeCountry,
+  readDownloadPath,
+  writeDownloadPath,
   clearDatabase
 } = require('./db');
 const { login, authInfo, authRevoke, purchase, download } = require('./ipatool');
@@ -76,6 +78,8 @@ ipcMain.handle('passphrase:read', async () => readPassphrase());
 ipcMain.handle('passphrase:write', async (_event, value) => writePassphrase(value));
 ipcMain.handle('country:read', async () => readCountry());
 ipcMain.handle('country:write', async (_event, value) => writeCountry(value));
+ipcMain.handle('downloadPath:read', async () => readDownloadPath());
+ipcMain.handle('downloadPath:write', async (_event, value) => writeDownloadPath(value));
 ipcMain.handle('app:openExternal', async (_event, url) => {
   try {
     await shell.openExternal(url);

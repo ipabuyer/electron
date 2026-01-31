@@ -97,6 +97,7 @@
         <SettingPage
           v-else
           :App_CountryCode_String="App_CountryCode_String"
+          :App_DownloadPath_String="App_DownloadPath_String"
           :App_DeveloperSite_String="App_DeveloperSite_String"
           :App_Notify_Function="App_Notify_Function"
           :setApp_CountryCode_String="App_SetCountryCode_Function"
@@ -139,6 +140,7 @@ import AppIcon from '../assets/Square44x44Logo.scale-200.png';
 
 const App_ActivePage_String = ref('home');
 const App_CountryCode_String = ref('cn');
+const App_DownloadPath_String = ref('');
 const App_DeveloperSite_String = ref('ipa.blazesnow.com');
 const App_Passphrase_String = ref('');
 const App_AuthState_Object = reactive({
@@ -240,6 +242,10 @@ onMounted(async () => {
   if (window.electronAPI?.readCountry) {
     const country = await window.electronAPI.readCountry();
     if (country) App_CountryCode_String.value = country;
+  }
+  if (window.electronAPI?.readDownloadPath) {
+    const path = await window.electronAPI.readDownloadPath();
+    if (path) App_DownloadPath_String.value = path;
   }
 });
 </script>
