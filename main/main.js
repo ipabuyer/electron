@@ -1,4 +1,6 @@
-const { app, BrowserWindow, ipcMain, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { useUIKit } = require('@electron-uikit/core/main');
+const { registerTitleBarListener, attachTitleBarToWindow } = require('@electron-uikit/titlebar/main');
 const path = require('node:path');
 const {
   ensureDatabase,
@@ -10,18 +12,10 @@ const {
   clearDatabase
 } = require('./db');
 const { login, authInfo, authRevoke, purchase, download } = require('./ipatool');
+const axios = require('axios');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let currentAuth = { email: null, isTest: false, passphrase: '' };
-
-const getTitleBarOverlay = () => {
-  const isDark = nativeTheme.shouldUseDarkColors;
-  return {
-    color: isDark ? '#141821' : '#f6f7fb',
-    symbolColor: isDark ? '#e5e7eb' : '#111827',
-      height: 52
-  };
-};
 
 const createWindow = async () => {
   await ensureDatabase();
@@ -31,10 +25,9 @@ const createWindow = async () => {
     minWidth: 1080,
     minHeight: 720,
     title: 'IPAbuyer',
+    icon: path.join(__dirname, '../assets/Icon.ico'),
     backgroundColor: '#0f1115',
-    frame: false,
     titleBarStyle: 'hidden',
-    titleBarOverlay: getTitleBarOverlay(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -44,13 +37,7 @@ const createWindow = async () => {
     }
   });
 
-  nativeTheme.on('updated', () => {
-    try {
-      win.setTitleBarOverlay(getTitleBarOverlay());
-    } catch (_error) {
-      // ignore if overlay is not supported
-    }
-  });
+  attachTitleBarToWindow(win);
 
   if (isDev) {
     await win.loadURL('http://localhost:5173');
@@ -62,6 +49,8 @@ const createWindow = async () => {
 
 app.whenReady().then(() => {
   app.setAppUserModelId('IPAbuyer.IPAbuyer');
+  useUIKit();
+  registerTitleBarListener();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -161,6 +150,15 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
       currentAuth
     });
     return { ...result, outputDir };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+
+ipcMain.handle('itunes:search', async (_event, params) => {
+  try {
+    const resp = await axios.get('https://itunes.apple.com/search', { params });
+    return { ok: true, data: resp.data };
   } catch (error) {
     return { ok: false, error: error.message };
   }

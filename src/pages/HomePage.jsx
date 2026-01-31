@@ -1,10 +1,10 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import {
   Avatar,
   Box,
   Button,
   CircularProgress,
+  IconButton,
   Menu,
   MenuItem,
   Paper,
@@ -21,6 +21,7 @@ import {
   Typography,
   Checkbox
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 
 const FILTERS = [
   { key: 'all', label: '全部' },
@@ -40,8 +41,7 @@ const HomePage = ({
   App_AuthState_Object,
   App_Passphrase_String,
   App_StatusRefreshSeed_Number,
-  App_Notify_Function,
-  setApp_TitleBarContent_Node
+  App_Notify_Function
 }) => {
   const [HomePage_SearchTerm_String, setHomePage_SearchTerm_String] = useState('');
   const [HomePage_Apps_Array, setHomePage_Apps_Array] = useState([]);
@@ -74,14 +74,15 @@ const HomePage = ({
     setHomePage_IsSearching_Boolean(true);
     try {
       const HomePage_CountryCode_String = (App_CountryCode_String || 'cn').toLowerCase();
-      const resp = await axios.get('https://itunes.apple.com/search', {
-        params: {
-          term: HomePage_SearchTerm_String.trim(),
-          entity: 'software',
-          limit: 50,
-          country: HomePage_CountryCode_String
-        }
+      const resp = await window.electronAPI.searchItunes({
+        term: HomePage_SearchTerm_String.trim(),
+        entity: 'software',
+        limit: 50,
+        country: HomePage_CountryCode_String
       });
+      if (!resp.ok) {
+        throw new Error(resp.error || 'search failed');
+      }
       const list = (resp.data?.results || []).map((item) => ({
         bundleId: item.bundleId || item.bundleID || item.bundleIdentifier || `unknown-${item.trackId}`,
         name: item.trackName,
@@ -249,56 +250,43 @@ const HomePage = ({
     HomePage_FilteredApps_Array.some((app) => HomePage_SelectedIds_Array.includes(app.bundleId)) &&
     !HomePage_SelectedAll_Boolean;
 
-  const HomePage_TitleBarContent_Node = useMemo(
-    () => (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          flex: 1,
-          maxWidth: 560,
-          WebkitAppRegion: 'no-drag'
-        }}
-      >
-        <TextField
-          size="small"
-          fullWidth
-          placeholder="搜索应用"
-          value={HomePage_SearchTerm_String}
-          onChange={(e) => setHomePage_SearchTerm_String(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !(e.isComposing || e.nativeEvent.isComposing)) {
-              HomePage_RunSearch_AsyncFunction();
-            }
-          }}
-          sx={{ WebkitAppRegion: 'no-drag' }}
-          inputProps={{ style: { WebkitAppRegion: 'no-drag' } }}
-        />
-        <Button
-          variant="contained"
-          onClick={HomePage_RunSearch_AsyncFunction}
-          disabled={HomePage_IsSearching_Boolean}
-          sx={{ whiteSpace: 'nowrap' }}
-        >
-          {HomePage_IsSearching_Boolean ? (
-            <CircularProgress size={18} color="inherit" />
-          ) : (
-            '搜索'
-          )}
-        </Button>
-      </Box>
-    ),
-    [HomePage_IsSearching_Boolean, HomePage_RunSearch_AsyncFunction, HomePage_SearchTerm_String]
-  );
-
-  useEffect(() => {
-    setApp_TitleBarContent_Node(HomePage_TitleBarContent_Node);
-    return () => setApp_TitleBarContent_Node(null);
-  }, [HomePage_TitleBarContent_Node, setApp_TitleBarContent_Node]);
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Paper sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TextField
+            size="small"
+            fullWidth
+            placeholder="搜索应用"
+            value={HomePage_SearchTerm_String}
+            onChange={(e) => setHomePage_SearchTerm_String(e.target.value)}
+            sx={{ userSelect: 'text' }}
+            inputProps={{
+              style: { userSelect: 'text' },
+              autoComplete: 'off',
+              autoCorrect: 'off',
+              spellCheck: 'false'
+            }}
+          />
+          <IconButton
+            color="primary"
+            onClick={HomePage_RunSearch_AsyncFunction}
+            disabled={HomePage_IsSearching_Boolean}
+            sx={{
+              width: 36,
+              height: 36,
+              border: 1,
+              borderColor: 'divider'
+            }}
+          >
+            {HomePage_IsSearching_Boolean ? (
+              <CircularProgress size={18} color="inherit" />
+            ) : (
+              <SearchIcon fontSize="small" />
+            )}
+          </IconButton>
+        </Box>
+      </Paper>
       <Paper sx={{ p: 2 }}>
         <Box
           sx={{

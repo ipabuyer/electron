@@ -17,15 +17,18 @@ const Sidebar = ({ App_ActivePage_String, setApp_ActivePage_String, Sidebar_Coll
       sx={{
         width: sidebarWidth,
         minWidth: sidebarWidth,
-        bgcolor: 'background.paper',
+        bgcolor: 'background.default',
         borderRight: 1,
         borderColor: 'divider',
         height: '100%',
+        minHeight: '100%',
+        alignSelf: 'stretch',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        pt: 1
       }}
     >
-      <List sx={{ px: 1, pt: 0 }}>
+      <List sx={{ px: 1, pt: 1 }}>
         {Sidebar_Items_Array.map((item) => {
           const content = (
             <ListItemButton

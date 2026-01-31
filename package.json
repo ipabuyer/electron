@@ -21,6 +21,8 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@electron-uikit/core": "^1.1.0",
+    "@electron-uikit/titlebar": "^1.4.0",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "axios": "^1.13.2",
@@ -42,6 +44,7 @@
     "appId": "IPAbuyer.IPAbuyer",
     "productName": "IPAbuyer",
     "buildVersion": "0.2.0.0",
+    "icon": "assets/Icon.ico",
     "directories": {
       "buildResources": "assets",
       "output": "release"
