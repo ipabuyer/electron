@@ -343,6 +343,7 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
   }
   HomePage_ActionLoading_Boolean.value = true;
   try {
+    window.dispatchEvent(new CustomEvent('download-start'));
     window.dispatchEvent(new CustomEvent('download-log-open'));
     const payload = {
       bundleIds: [...ids],
@@ -359,6 +360,7 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
   } finally {
     HomePage_ActionLoading_Boolean.value = false;
     HomePage_CloseContextMenu_Function();
+    window.dispatchEvent(new CustomEvent('download-end'));
   }
 };
 

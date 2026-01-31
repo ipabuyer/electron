@@ -137,6 +137,14 @@
             复制
           </button>
           <button class="ui-button ghost" type="button" @click="App_ClearDownloadLog_Function">清空</button>
+          <button
+            v-if="App_DownloadRunning_Boolean"
+            class="ui-button danger"
+            type="button"
+            @click="App_CancelDownload_Function"
+          >
+            取消下载
+          </button>
           <button class="ui-button text" type="button" @click="App_DownloadLog_Open_Boolean = false">关闭</button>
         </div>
       </div>
@@ -173,6 +181,7 @@ const App_SearchTerm_String = ref('');
 const App_SearchTrigger_Number = ref(0);
 const App_Searching_Boolean = ref(false);
 const App_DownloadLog_Open_Boolean = ref(false);
+const App_DownloadRunning_Boolean = ref(false);
 const App_DownloadLogs_Array = ref([]);
 const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
 
@@ -215,6 +224,12 @@ const App_CopyText_Function = async (text) => {
 
 const App_ClearDownloadLog_Function = () => {
   App_DownloadLogs_Array.value = [];
+};
+
+const App_CancelDownload_Function = async () => {
+  if (!window.electronAPI?.cancelDownload) return;
+  await window.electronAPI.cancelDownload();
+  App_DownloadLogs_Array.value.push('已请求取消下载…');
 };
 
 const App_ShowSearch_Boolean = computed(() => App_ActivePage_String.value === 'home');
@@ -287,6 +302,12 @@ onMounted(async () => {
   }
   window.addEventListener('download-log-open', () => {
     App_DownloadLog_Open_Boolean.value = true;
+  });
+  window.addEventListener('download-start', () => {
+    App_DownloadRunning_Boolean.value = true;
+  });
+  window.addEventListener('download-end', () => {
+    App_DownloadRunning_Boolean.value = false;
   });
 });
 </script>

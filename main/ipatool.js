@@ -65,7 +65,7 @@ const runCommand = (args) =>
     });
   });
 
-const runCommandStream = (args, onLog) =>
+const runCommandStream = (args, onLog, controller) =>
   new Promise((resolve) => {
     let ipatoolPath;
     try {
@@ -74,7 +74,14 @@ const runCommandStream = (args, onLog) =>
       resolve({ code: -1, output: error.message, stdout: '', stderr: error.message });
       return;
     }
+    if (controller?.canceled) {
+      resolve({ code: -1, output: 'canceled', stdout: '', stderr: 'canceled', canceled: true });
+      return;
+    }
     const child = spawn(ipatoolPath, args, { windowsHide: true });
+    if (controller) {
+      controller.child = child;
+    }
     let stdout = '';
     let stderr = '';
     const stdoutBuffer = createLineBuffer((line) => onLog?.(line, 'stdout'));
@@ -96,7 +103,7 @@ const runCommandStream = (args, onLog) =>
       const cleanStdout = stripAnsi(stdout).trim();
       const cleanStderr = stripAnsi(stderr).trim();
       const output = `${cleanStdout}\n${cleanStderr}`.trim();
-      resolve({ code, output, stdout: cleanStdout, stderr: cleanStderr });
+      resolve({ code, output, stdout: cleanStdout, stderr: cleanStderr, canceled: controller?.canceled || false });
     });
   });
 
@@ -193,7 +200,7 @@ const purchase = async ({ bundleIds, passphrase, currentAuth }) => {
   return { ok, results };
 };
 
-const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog }) => {
+const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog, controller }) => {
   if (!Array.isArray(bundleIds) || bundleIds.length === 0) {
     return { ok: false, message: 'No bundleIds provided', results: [] };
   }
@@ -216,6 +223,9 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog }
 
   const results = [];
   for (const bundleId of bundleIds) {
+    if (controller?.canceled) {
+      return { ok: false, results, canceled: true };
+    }
     const outFile = path.join(outputDir, `${bundleId}.ipa`);
     fs.mkdirSync(path.dirname(outFile), { recursive: true });
     const res = await runCommandStream([
@@ -230,11 +240,11 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog }
       IPATOOL_FORMAT
     ], (line, stream) => {
       onLog?.({ bundleId, line, stream });
-    });
+    }, controller);
     results.push({ bundleId, target: outFile, ...res, ok: res.code === 0 });
   }
   const ok = results.every((r) => r.ok);
-  return { ok, results };
+  return { ok, results, canceled: controller?.canceled || false };
 };
 
 module.exports = {

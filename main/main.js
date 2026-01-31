@@ -18,6 +18,7 @@ const axios = require('axios');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let currentAuth = { email: null, isTest: false, passphrase: '' };
+let currentDownloadController = null;
 
 const createWindow = async () => {
   await ensureDatabase();
@@ -221,17 +222,37 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
     const sendLog = (data) => {
       _event.sender.send('download:log', data);
     };
+    currentDownloadController = {
+      canceled: false,
+      child: null
+    };
     const result = await download({
       bundleIds: payload.bundleIds,
       passphrase,
       outputDir,
       currentAuth,
-      onLog: sendLog
+      onLog: sendLog,
+      controller: currentDownloadController
     });
+    currentDownloadController = null;
     return { ...result, outputDir };
   } catch (error) {
+    currentDownloadController = null;
     return { ok: false, error: error.message };
   }
+});
+
+ipcMain.handle('ipatool:download:cancel', async () => {
+  if (currentDownloadController?.child) {
+    currentDownloadController.canceled = true;
+    try {
+      currentDownloadController.child.kill();
+    } catch (_error) {
+      // ignore kill errors
+    }
+    return { ok: true };
+  }
+  return { ok: false, error: 'no active download' };
 });
 
 ipcMain.handle('itunes:search', async (_event, params) => {
