@@ -118,7 +118,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
   App_CountryCode_String: {
@@ -173,6 +173,7 @@ const HomePage_Filter_String = ref('all');
 const HomePage_IsSearching_Boolean = ref(false);
 const HomePage_ActionLoading_Boolean = ref(false);
 const HomePage_ContextMenu_Object = ref(null);
+const HomePage_LastContextOpen_Number = ref(0);
 
 const HomePage_LoadStatuses_AsyncFunction = async () => {
   if (!window.electronAPI?.listAppStatuses) return;
@@ -332,11 +333,13 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
 };
 
 const HomePage_HandleContextMenu_Function = (event, app) => {
+  event.stopPropagation();
   HomePage_ContextMenu_Object.value = {
     mouseX: event.clientX + 2,
     mouseY: event.clientY - 6,
     app
   };
+  HomePage_LastContextOpen_Number.value = Date.now();
 };
 
 const HomePage_CloseContextMenu_Function = () => {
@@ -355,6 +358,38 @@ const HomePage_PartialSelect_Boolean = computed(() =>
 
 onMounted(() => {
   HomePage_LoadStatuses_AsyncFunction();
+});
+
+const HomePage_CloseOnGlobal_Function = (event) => {
+  if (!HomePage_ContextMenu_Object.value) return;
+  if (event?.type === 'contextmenu') {
+    if (Date.now() - HomePage_LastContextOpen_Number.value < 200) {
+      return;
+    }
+  }
+  HomePage_CloseContextMenu_Function();
+};
+
+const HomePage_CloseOnEscape_Function = (event) => {
+  if (event.key === 'Escape') HomePage_CloseOnGlobal_Function(event);
+};
+
+onMounted(() => {
+  window.addEventListener('click', HomePage_CloseOnGlobal_Function);
+  window.addEventListener('contextmenu', HomePage_CloseOnGlobal_Function);
+  window.addEventListener('scroll', HomePage_CloseOnGlobal_Function, true);
+  window.addEventListener('resize', HomePage_CloseOnGlobal_Function);
+  window.addEventListener('blur', HomePage_CloseOnGlobal_Function);
+  window.addEventListener('keydown', HomePage_CloseOnEscape_Function);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('click', HomePage_CloseOnGlobal_Function);
+  window.removeEventListener('contextmenu', HomePage_CloseOnGlobal_Function);
+  window.removeEventListener('scroll', HomePage_CloseOnGlobal_Function, true);
+  window.removeEventListener('resize', HomePage_CloseOnGlobal_Function);
+  window.removeEventListener('blur', HomePage_CloseOnGlobal_Function);
+  window.removeEventListener('keydown', HomePage_CloseOnEscape_Function);
 });
 
 watch(
