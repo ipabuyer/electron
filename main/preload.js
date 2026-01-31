@@ -21,5 +21,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   authRevoke: () => ipcRenderer.invoke('auth:revoke'),
   purchase: (payload) => ipcRenderer.invoke('ipatool:purchase', payload),
   download: (payload) => ipcRenderer.invoke('ipatool:download', payload),
+  onDownloadLog: (callback) => ipcRenderer.on('download:log', (_event, data) => callback(data)),
   searchItunes: (params) => ipcRenderer.invoke('itunes:search', params)
 });

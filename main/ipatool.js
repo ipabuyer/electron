@@ -7,6 +7,19 @@ const ANSI_REGEX = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-
 
 const stripAnsi = (value) => (value ? value.replace(ANSI_REGEX, '') : value);
 
+const createLineBuffer = (onLine) => {
+  let buffer = '';
+  return (chunk) => {
+    buffer += chunk;
+    const parts = buffer.split(/\r?\n/);
+    buffer = parts.pop() || '';
+    parts.forEach((line) => {
+      const cleaned = stripAnsi(line).trim();
+      if (cleaned) onLine(cleaned);
+    });
+  };
+};
+
 function getIpatoolPath() {
   const arch = process.arch;
   if (arch === 'arm64') {
@@ -40,6 +53,41 @@ const runCommand = (args) =>
     });
     child.stderr.on('data', (data) => {
       stderr += data.toString();
+    });
+    child.on('error', (err) => {
+      resolve({ code: -1, output: err.message, stdout, stderr: err.message });
+    });
+    child.on('close', (code) => {
+      const cleanStdout = stripAnsi(stdout).trim();
+      const cleanStderr = stripAnsi(stderr).trim();
+      const output = `${cleanStdout}\n${cleanStderr}`.trim();
+      resolve({ code, output, stdout: cleanStdout, stderr: cleanStderr });
+    });
+  });
+
+const runCommandStream = (args, onLog) =>
+  new Promise((resolve) => {
+    let ipatoolPath;
+    try {
+      ipatoolPath = ensureBinary();
+    } catch (error) {
+      resolve({ code: -1, output: error.message, stdout: '', stderr: error.message });
+      return;
+    }
+    const child = spawn(ipatoolPath, args, { windowsHide: true });
+    let stdout = '';
+    let stderr = '';
+    const stdoutBuffer = createLineBuffer((line) => onLog?.(line, 'stdout'));
+    const stderrBuffer = createLineBuffer((line) => onLog?.(line, 'stderr'));
+    child.stdout.on('data', (data) => {
+      const text = data.toString();
+      stdout += text;
+      stdoutBuffer(text);
+    });
+    child.stderr.on('data', (data) => {
+      const text = data.toString();
+      stderr += text;
+      stderrBuffer(text);
     });
     child.on('error', (err) => {
       resolve({ code: -1, output: err.message, stdout, stderr: err.message });
@@ -145,7 +193,7 @@ const purchase = async ({ bundleIds, passphrase, currentAuth }) => {
   return { ok, results };
 };
 
-const download = async ({ bundleIds, passphrase, outputDir, currentAuth }) => {
+const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog }) => {
   if (!Array.isArray(bundleIds) || bundleIds.length === 0) {
     return { ok: false, message: 'No bundleIds provided', results: [] };
   }
@@ -170,7 +218,7 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth }) => {
   for (const bundleId of bundleIds) {
     const outFile = path.join(outputDir, `${bundleId}.ipa`);
     fs.mkdirSync(path.dirname(outFile), { recursive: true });
-    const res = await runCommand([
+    const res = await runCommandStream([
       'download',
       '--keychain-passphrase',
       passphrase,
@@ -180,7 +228,9 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth }) => {
       bundleId,
       '--format',
       IPATOOL_FORMAT
-    ]);
+    ], (line, stream) => {
+      onLog?.({ bundleId, line, stream });
+    });
     results.push({ bundleId, target: outFile, ...res, ok: res.code === 0 });
   }
   const ok = results.every((r) => r.ok);

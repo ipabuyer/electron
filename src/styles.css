@@ -738,6 +738,51 @@ input[type='checkbox'] {
   color: var(--text-main);
 }
 
+.download-log-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  width: min(520px, 90vw);
+  max-height: 50vh;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 99998;
+}
+
+.download-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.download-log-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.download-log-body {
+  padding: 12px 14px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+}
+
+.download-log-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .snackbar-info .snackbar-dot {
   background: var(--primary);
 }

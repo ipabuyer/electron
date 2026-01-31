@@ -218,11 +218,15 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
   try {
     const passphrase = payload.passphrase || currentAuth.passphrase || (await readPassphrase());
     const outputDir = payload.outputDir || getDownloadsDir();
+    const sendLog = (data) => {
+      _event.sender.send('download:log', data);
+    };
     const result = await download({
       bundleIds: payload.bundleIds,
       passphrase,
       outputDir,
-      currentAuth
+      currentAuth,
+      onLog: sendLog
     });
     return { ...result, outputDir };
   } catch (error) {

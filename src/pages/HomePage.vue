@@ -343,6 +343,7 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
   }
   HomePage_ActionLoading_Boolean.value = true;
   try {
+    window.dispatchEvent(new CustomEvent('download-log-open'));
     const payload = {
       bundleIds: [...ids],
       passphrase: props.App_Passphrase_String || ''

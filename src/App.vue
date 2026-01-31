@@ -128,6 +128,24 @@
         </div>
       </transition-group>
     </div>
+
+    <div v-if="App_DownloadLog_Open_Boolean" class="download-log-panel">
+      <div class="download-log-header">
+        <span>下载日志</span>
+        <div class="download-log-actions">
+          <button class="ui-button ghost" type="button" @click="App_CopyText_Function(App_DownloadLog_Text_String)">
+            复制
+          </button>
+          <button class="ui-button ghost" type="button" @click="App_ClearDownloadLog_Function">清空</button>
+          <button class="ui-button text" type="button" @click="App_DownloadLog_Open_Boolean = false">关闭</button>
+        </div>
+      </div>
+      <div class="download-log-body">
+        <div v-for="(line, index) in App_DownloadLogs_Array" :key="`${index}-${line}`" class="download-log-line">
+          {{ line }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -154,6 +172,9 @@ const App_SidebarCollapsed_Boolean = ref(false);
 const App_SearchTerm_String = ref('');
 const App_SearchTrigger_Number = ref(0);
 const App_Searching_Boolean = ref(false);
+const App_DownloadLog_Open_Boolean = ref(false);
+const App_DownloadLogs_Array = ref([]);
+const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -190,6 +211,10 @@ const App_CopyText_Function = async (text) => {
   } catch (_error) {
     // ignore copy errors
   }
+};
+
+const App_ClearDownloadLog_Function = () => {
+  App_DownloadLogs_Array.value = [];
 };
 
 const App_ShowSearch_Boolean = computed(() => App_ActivePage_String.value === 'home');
@@ -252,5 +277,16 @@ onMounted(async () => {
     const path = await window.electronAPI.readDownloadPath();
     if (path) App_DownloadPath_String.value = path;
   }
+  if (window.electronAPI?.onDownloadLog) {
+    window.electronAPI.onDownloadLog((data) => {
+      if (!data?.line) return;
+      const prefix = data.bundleId ? `[${data.bundleId}] ` : '';
+      App_DownloadLogs_Array.value.push(`${prefix}${data.line}`);
+      App_DownloadLog_Open_Boolean.value = true;
+    });
+  }
+  window.addEventListener('download-log-open', () => {
+    App_DownloadLog_Open_Boolean.value = true;
+  });
 });
 </script>
