@@ -6,6 +6,7 @@ const initSqlJs = require('sql.js');
 
 const DB_FILE = 'PurchasedAppDb.db';
 const PASSPHRASE_FILE = 'passphrase.txt';
+const COUNTRY_FILE = 'country.txt';
 const DOWNLOADS_DIR = 'downloads';
 const ALLOWED_STATUSES = new Set(['purchased', 'owned']);
 
@@ -156,6 +157,20 @@ const writePassphrase = async (value) => {
   return true;
 };
 
+const readCountry = async () => {
+  ensureDirectories();
+  const countryPath = path.join(getBaseDir(), COUNTRY_FILE);
+  if (!fs.existsSync(countryPath)) return '';
+  return fs.readFileSync(countryPath, 'utf-8').trim();
+};
+
+const writeCountry = async (value) => {
+  ensureDirectories();
+  const countryPath = path.join(getBaseDir(), COUNTRY_FILE);
+  fs.writeFileSync(countryPath, (value || '').trim(), 'utf-8');
+  return true;
+};
+
 const clearDatabase = async () => {
   ensureDirectories();
   if (database) {
@@ -185,5 +200,7 @@ module.exports = {
   getDownloadsDir,
   readPassphrase,
   writePassphrase,
+  readCountry,
+  writeCountry,
   clearDatabase
 };

@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearDatabase: () => ipcRenderer.invoke('db:clear'),
   readPassphrase: () => ipcRenderer.invoke('passphrase:read'),
   savePassphrase: (value) => ipcRenderer.invoke('passphrase:write', value),
+  readCountry: () => ipcRenderer.invoke('country:read'),
+  saveCountry: (value) => ipcRenderer.invoke('country:write', value),
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
   windowMinimize: () => ipcRenderer.invoke('window:minimize'),
   windowMaximize: () => ipcRenderer.invoke('window:maximize'),

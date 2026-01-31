@@ -429,6 +429,21 @@ watch(
 );
 
 watch(
+  () => HomePage_Filter_String.value,
+  () => {
+    HomePage_SelectedIds_Array.value = [];
+  }
+);
+
+watch(
+  () => HomePage_FilteredApps_Array.value,
+  (list) => {
+    const visibleIds = new Set(list.map((item) => item.bundleId));
+    HomePage_SelectedIds_Array.value = HomePage_SelectedIds_Array.value.filter((id) => visibleIds.has(id));
+  }
+);
+
+watch(
   () => props.App_SearchTrigger_Number,
   () => {
     HomePage_RunSearch_AsyncFunction();

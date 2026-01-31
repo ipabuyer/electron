@@ -89,13 +89,18 @@ const SettingPage_OnCountryInput_Function = (event) => {
   props.setApp_CountryCode_String(SettingPage_NormalizeCountryCode_Function(event.target.value));
 };
 
-const SettingPage_ConfirmCountry_Function = () => {
+const SettingPage_ConfirmCountry_Function = async () => {
   const value = props.App_CountryCode_String || '';
   if (!/^[a-z]{2}$/i.test(value)) {
     props.App_Notify_Function('warning', '请输入正确的国家代码（两位字母）');
     return;
   }
-  props.App_Notify_Function('success', `国家代码已设置为 ${value.toLowerCase()}`);
+  const normalized = value.toLowerCase();
+  props.setApp_CountryCode_String(normalized);
+  if (window.electronAPI?.saveCountry) {
+    await window.electronAPI.saveCountry(normalized);
+  }
+  props.App_Notify_Function('success', `国家代码已设置为 ${normalized}`);
 };
 
 const SettingPage_OpenDeveloperSite_Function = async () => {

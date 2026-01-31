@@ -105,12 +105,19 @@
       </main>
     </div>
 
-    <transition name="fade">
-      <div v-if="App_Snackbar_Object.open" class="snackbar" :class="`snackbar-${App_Snackbar_Object.severity}`">
-        <span class="snackbar-dot" aria-hidden="true"></span>
-        <span class="snackbar-text">{{ App_Snackbar_Object.message }}</span>
-      </div>
-    </transition>
+    <div class="snackbar-stack">
+      <transition-group name="fade">
+        <div
+          v-for="item in App_SnackbarQueue_Array"
+          :key="item.id"
+          class="snackbar"
+          :class="`snackbar-${item.severity}`"
+        >
+          <span class="snackbar-dot" aria-hidden="true"></span>
+          <span class="snackbar-text">{{ item.message }}</span>
+        </div>
+      </transition-group>
+    </div>
   </div>
 </template>
 
@@ -137,36 +144,15 @@ const App_SearchTerm_String = ref('');
 const App_SearchTrigger_Number = ref(0);
 const App_Searching_Boolean = ref(false);
 
-const App_Snackbar_Object = reactive({
-  open: false,
-  severity: 'info',
-  message: ''
-});
 const App_SnackbarQueue_Array = ref([]);
-let App_SnackbarTimer_Number = 0;
-
-const App_ShowNextSnackbar_Function = () => {
-  if (!App_SnackbarQueue_Array.value.length) {
-    App_Snackbar_Object.open = false;
-    return;
-  }
-  const next = App_SnackbarQueue_Array.value.shift();
-  App_Snackbar_Object.open = true;
-  App_Snackbar_Object.severity = next.severity;
-  App_Snackbar_Object.message = next.message;
-  if (App_SnackbarTimer_Number) {
-    clearTimeout(App_SnackbarTimer_Number);
-  }
-  App_SnackbarTimer_Number = setTimeout(() => {
-    App_ShowNextSnackbar_Function();
-  }, 3200);
-};
+let App_SnackbarSeed_Number = 0;
 
 const App_Notify_Function = (severity, message) => {
-  App_SnackbarQueue_Array.value.push({ severity, message });
-  if (!App_Snackbar_Object.open) {
-    App_ShowNextSnackbar_Function();
-  }
+  const id = `${Date.now()}-${App_SnackbarSeed_Number++}`;
+  App_SnackbarQueue_Array.value.push({ id, severity, message });
+  setTimeout(() => {
+    App_SnackbarQueue_Array.value = App_SnackbarQueue_Array.value.filter((item) => item.id !== id);
+  }, 3200);
 };
 
 const App_ShowSearch_Boolean = computed(() => App_ActivePage_String.value === 'home');
@@ -216,6 +202,10 @@ onMounted(async () => {
   const saved = await window.electronAPI.readPassphrase();
   if (saved) {
     App_Passphrase_String.value = saved;
+  }
+  if (window.electronAPI?.readCountry) {
+    const country = await window.electronAPI.readCountry();
+    if (country) App_CountryCode_String.value = country;
   }
 });
 </script>
