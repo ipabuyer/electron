@@ -6,7 +6,7 @@ const initSqlJs = require('sql.js');
 
 const DB_FILE = 'PurchasedAppDb.db';
 const PASSPHRASE_FILE = 'passphrase.txt';
-const DOWNLOADS_DIR = 'downloads';
+const SETTINGS_FILE = 'settings.json';
 const ALLOWED_STATUSES = new Set(['purchased', 'owned']);
 
 let sqlInstancePromise;
@@ -23,11 +23,14 @@ const getBaseDir = () => {
 };
 
 const getDbPath = () => path.join(getBaseDir(), DB_FILE);
-const getDownloadsDir = () => path.join(getBaseDir(), DOWNLOADS_DIR);
+const getDefaultDownloadsDir = () => app.getPath('downloads');
+const getDownloadsDir = () => {
+  const settings = readSettings();
+  return settings.downloadPath || getDefaultDownloadsDir();
+};
 
-const ensureDirectories = () => {
+const ensureBaseDir = () => {
   fs.mkdirSync(getBaseDir(), { recursive: true });
-  fs.mkdirSync(getDownloadsDir(), { recursive: true });
 };
 
 const getSql = async () => {
@@ -40,7 +43,7 @@ const getSql = async () => {
 };
 
 const ensureDatabase = async () => {
-  ensureDirectories();
+  ensureBaseDir();
   if (database) return database;
 
   const SQL = await getSql();
@@ -143,21 +146,64 @@ const upsertMany = async (rows) => {
 };
 
 const readPassphrase = async () => {
-  ensureDirectories();
+  ensureBaseDir();
   const passPath = path.join(getBaseDir(), PASSPHRASE_FILE);
   if (!fs.existsSync(passPath)) return '';
   return fs.readFileSync(passPath, 'utf-8');
 };
 
 const writePassphrase = async (value) => {
-  ensureDirectories();
+  ensureBaseDir();
   const passPath = path.join(getBaseDir(), PASSPHRASE_FILE);
   fs.writeFileSync(passPath, value || '', 'utf-8');
   return true;
 };
 
+const readSettings = () => {
+  ensureBaseDir();
+  const settingsPath = path.join(getBaseDir(), SETTINGS_FILE);
+  if (!fs.existsSync(settingsPath)) return {};
+  try {
+    const raw = fs.readFileSync(settingsPath, 'utf-8');
+    return JSON.parse(raw || '{}');
+  } catch (_error) {
+    return {};
+  }
+};
+
+const writeSettings = (next) => {
+  ensureBaseDir();
+  const settingsPath = path.join(getBaseDir(), SETTINGS_FILE);
+  fs.writeFileSync(settingsPath, JSON.stringify(next, null, 2), 'utf-8');
+  return true;
+};
+
+const readCountry = async () => {
+  const settings = readSettings();
+  return (settings.country || '').trim();
+};
+
+const writeCountry = async (value) => {
+  const settings = readSettings();
+  settings.country = (value || '').trim();
+  writeSettings(settings);
+  return true;
+};
+
+const readDownloadPath = async () => {
+  const settings = readSettings();
+  return (settings.downloadPath || getDefaultDownloadsDir()).trim();
+};
+
+const writeDownloadPath = async (value) => {
+  const settings = readSettings();
+  settings.downloadPath = (value || '').trim();
+  writeSettings(settings);
+  return true;
+};
+
 const clearDatabase = async () => {
-  ensureDirectories();
+  ensureBaseDir();
   if (database) {
     try {
       database.close();
@@ -185,5 +231,9 @@ module.exports = {
   getDownloadsDir,
   readPassphrase,
   writePassphrase,
+  readCountry,
+  writeCountry,
+  readDownloadPath,
+  writeDownloadPath,
   clearDatabase
 };

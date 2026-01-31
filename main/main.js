@@ -1,6 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const { useUIKit } = require('@electron-uikit/core/main');
-const { registerTitleBarListener, attachTitleBarToWindow } = require('@electron-uikit/titlebar/main');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('node:path');
 const {
   ensureDatabase,
@@ -9,6 +7,10 @@ const {
   getDownloadsDir,
   readPassphrase,
   writePassphrase,
+  readCountry,
+  writeCountry,
+  readDownloadPath,
+  writeDownloadPath,
   clearDatabase
 } = require('./db');
 const { login, authInfo, authRevoke, purchase, download } = require('./ipatool');
@@ -16,6 +18,7 @@ const axios = require('axios');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let currentAuth = { email: null, isTest: false, passphrase: '' };
+let currentDownloadController = null;
 
 const createWindow = async () => {
   await ensureDatabase();
@@ -37,8 +40,6 @@ const createWindow = async () => {
     }
   });
 
-  attachTitleBarToWindow(win);
-
   if (isDev) {
     await win.loadURL('http://localhost:5173');
     win.webContents.openDevTools({ mode: 'detach' });
@@ -49,8 +50,6 @@ const createWindow = async () => {
 
 app.whenReady().then(() => {
   app.setAppUserModelId('IPAbuyer.IPAbuyer');
-  useUIKit();
-  registerTitleBarListener();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -78,6 +77,61 @@ ipcMain.handle('db:clear', async () => {
 
 ipcMain.handle('passphrase:read', async () => readPassphrase());
 ipcMain.handle('passphrase:write', async (_event, value) => writePassphrase(value));
+ipcMain.handle('country:read', async () => readCountry());
+ipcMain.handle('country:write', async (_event, value) => writeCountry(value));
+ipcMain.handle('downloadPath:read', async () => readDownloadPath());
+ipcMain.handle('downloadPath:write', async (_event, value) => writeDownloadPath(value));
+ipcMain.handle('downloadPath:open', async (_event, value) => {
+  try {
+    await shell.openPath(value);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+ipcMain.handle('downloadPath:pick', async (event) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const result = await dialog.showOpenDialog(win, {
+      title: '选择下载路径',
+      properties: ['openDirectory', 'createDirectory']
+    });
+    if (result.canceled || !result.filePaths?.length) {
+      return { ok: false, canceled: true };
+    }
+    const selected = result.filePaths[0];
+    await writeDownloadPath(selected);
+    return { ok: true, path: selected };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+ipcMain.handle('app:openExternal', async (_event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+
+ipcMain.handle('window:minimize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) win.minimize();
+});
+ipcMain.handle('window:maximize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win) return;
+  if (win.isMaximized()) {
+    win.unmaximize();
+  } else {
+    win.maximize();
+  }
+});
+ipcMain.handle('window:close', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) win.close();
+});
 
 ipcMain.handle('auth:login', async (_event, payload) => {
   try {
@@ -124,14 +178,36 @@ ipcMain.handle('ipatool:purchase', async (_event, payload) => {
       passphrase,
       currentAuth
     });
-    if (result.ok && payload.bundleIds?.length) {
-      const rows = payload.bundleIds.map((bundleId) => ({
-        bundleId,
-        appName: payload.appNameMap?.[bundleId] || '',
-        email: currentAuth.email || payload.email || '',
-        status: 'purchased'
-      }));
-      await upsertMany(rows);
+    if (payload.bundleIds?.length) {
+      const email = currentAuth.email || payload.email || '';
+      if (result.ok) {
+        const rows = payload.bundleIds.map((bundleId) => ({
+          bundleId,
+          appName: payload.appNameMap?.[bundleId] || '',
+          email,
+          status: 'purchased'
+        }));
+        await upsertMany(rows);
+      } else if (Array.isArray(result.results)) {
+        const ownedRows = result.results
+          .filter((item) => {
+            const text = `${item.stderr || ''}\n${item.output || ''}`.toLowerCase();
+            return text.includes('stdq') || text.includes('already') || text.includes('owned');
+          })
+          .map((item) => ({
+            bundleId: item.bundleId,
+            appName: payload.appNameMap?.[item.bundleId] || '',
+            email,
+            status: 'owned'
+          }));
+        if (ownedRows.length) {
+          await upsertMany(ownedRows);
+          result.ownedApps = ownedRows.map((row) => ({
+            bundleId: row.bundleId,
+            appName: row.appName || ''
+          }));
+        }
+      }
     }
     return result;
   } catch (error) {
@@ -143,16 +219,40 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
   try {
     const passphrase = payload.passphrase || currentAuth.passphrase || (await readPassphrase());
     const outputDir = payload.outputDir || getDownloadsDir();
+    const sendLog = (data) => {
+      _event.sender.send('download:log', data);
+    };
+    currentDownloadController = {
+      canceled: false,
+      child: null
+    };
     const result = await download({
       bundleIds: payload.bundleIds,
       passphrase,
       outputDir,
-      currentAuth
+      currentAuth,
+      onLog: sendLog,
+      controller: currentDownloadController
     });
+    currentDownloadController = null;
     return { ...result, outputDir };
   } catch (error) {
+    currentDownloadController = null;
     return { ok: false, error: error.message };
   }
+});
+
+ipcMain.handle('ipatool:download:cancel', async () => {
+  if (currentDownloadController?.child) {
+    currentDownloadController.canceled = true;
+    try {
+      currentDownloadController.child.kill();
+    } catch (_error) {
+      // ignore kill errors
+    }
+    return { ok: true };
+  }
+  return { ok: false, error: 'no active download' };
 });
 
 ipcMain.handle('itunes:search', async (_event, params) => {
