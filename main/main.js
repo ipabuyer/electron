@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const { useUIKit } = require('@electron-uikit/core/main');
 const { registerTitleBarListener, attachTitleBarToWindow } = require('@electron-uikit/titlebar/main');
 const path = require('node:path');
@@ -78,6 +78,14 @@ ipcMain.handle('db:clear', async () => {
 
 ipcMain.handle('passphrase:read', async () => readPassphrase());
 ipcMain.handle('passphrase:write', async (_event, value) => writePassphrase(value));
+ipcMain.handle('app:openExternal', async (_event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
 
 ipcMain.handle('auth:login', async (_event, payload) => {
   try {
