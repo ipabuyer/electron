@@ -297,9 +297,13 @@ const HomePage_HandlePurchase_AsyncFunction = async (bundleIds) => {
     if (res.ok) {
       await HomePage_LoadStatuses_AsyncFunction();
       props.App_Notify_Function('success', '购买完成');
-    } else if (Array.isArray(res.ownedBundleIds) && res.ownedBundleIds.length) {
+    } else if (Array.isArray(res.ownedApps) && res.ownedApps.length) {
       await HomePage_LoadStatuses_AsyncFunction();
-      props.App_Notify_Function('warning', '该应用疑似已拥有，已归类到“已拥有”');
+      const names = res.ownedApps
+        .map((item) => item.appName || item.bundleId)
+        .filter(Boolean)
+        .join('、');
+      props.App_Notify_Function('warning', `${names} 疑似已拥有，已归类到“已拥有”`);
     } else {
       const detail =
         res.error ||

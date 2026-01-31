@@ -168,7 +168,10 @@ ipcMain.handle('ipatool:purchase', async (_event, payload) => {
           }));
         if (ownedRows.length) {
           await upsertMany(ownedRows);
-          result.ownedBundleIds = ownedRows.map((row) => row.bundleId);
+          result.ownedApps = ownedRows.map((row) => ({
+            bundleId: row.bundleId,
+            appName: row.appName || ''
+          }));
         }
       }
     }
