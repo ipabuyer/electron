@@ -144,14 +144,32 @@ ipcMain.handle('ipatool:purchase', async (_event, payload) => {
       passphrase,
       currentAuth
     });
-    if (result.ok && payload.bundleIds?.length) {
-      const rows = payload.bundleIds.map((bundleId) => ({
-        bundleId,
-        appName: payload.appNameMap?.[bundleId] || '',
-        email: currentAuth.email || payload.email || '',
-        status: 'purchased'
-      }));
-      await upsertMany(rows);
+    if (payload.bundleIds?.length) {
+      const email = currentAuth.email || payload.email || '';
+      if (result.ok) {
+        const rows = payload.bundleIds.map((bundleId) => ({
+          bundleId,
+          appName: payload.appNameMap?.[bundleId] || '',
+          email,
+          status: 'purchased'
+        }));
+        await upsertMany(rows);
+      } else if (Array.isArray(result.results)) {
+        const ownedRows = result.results
+          .filter((item) => {
+            const text = `${item.stderr || ''}\n${item.output || ''}`.toLowerCase();
+            return text.includes('stdq') || text.includes('already') || text.includes('owned');
+          })
+          .map((item) => ({
+            bundleId: item.bundleId,
+            appName: payload.appNameMap?.[item.bundleId] || '',
+            email,
+            status: 'owned'
+          }));
+        if (ownedRows.length) {
+          await upsertMany(ownedRows);
+        }
+      }
     }
     return result;
   } catch (error) {

@@ -287,17 +287,24 @@ const HomePage_HandlePurchase_AsyncFunction = async (bundleIds) => {
   HomePage_ActionLoading_Boolean.value = true;
   try {
     const appNameMap = Object.fromEntries(HomePage_Apps_Array.value.map((app) => [app.bundleId, app.name]));
-    const res = await window.electronAPI.purchase({
-      bundleIds: ids,
-      passphrase: props.App_Passphrase_String,
-      appNameMap,
-      email: props.App_AuthState_Object.email
-    });
+    const payload = {
+      bundleIds: [...ids],
+      passphrase: props.App_Passphrase_String || '',
+      appNameMap: { ...appNameMap },
+      email: props.App_AuthState_Object.email || ''
+    };
+    const res = await window.electronAPI.purchase(JSON.parse(JSON.stringify(payload)));
     if (res.ok) {
       await HomePage_LoadStatuses_AsyncFunction();
       props.App_Notify_Function('success', '购买完成');
     } else {
-      props.App_Notify_Function('error', res.error || res.message || '购买失败');
+      const detail =
+        res.error ||
+        res.message ||
+        res.results?.find((item) => !item.ok)?.stderr ||
+        res.results?.find((item) => !item.ok)?.output ||
+        '购买失败';
+      props.App_Notify_Function('error', detail);
     }
   } catch (error) {
     props.App_Notify_Function('error', error.message || '购买失败');
@@ -315,10 +322,11 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
   }
   HomePage_ActionLoading_Boolean.value = true;
   try {
-    const res = await window.electronAPI.download({
-      bundleIds: ids,
-      passphrase: props.App_Passphrase_String
-    });
+    const payload = {
+      bundleIds: [...ids],
+      passphrase: props.App_Passphrase_String || ''
+    };
+    const res = await window.electronAPI.download(JSON.parse(JSON.stringify(payload)));
     if (res.ok) {
       props.App_Notify_Function('success', `下载完成，输出目录：${res.outputDir || ''}`);
     } else {
