@@ -303,11 +303,18 @@ const App_RemoveFromDownloadQueue_Function = (bundleIds = []) => {
 const App_SetDownloadStatusBatch_Function = (updates = []) => {
   if (!Array.isArray(updates) || updates.length === 0) return;
   const nextStatus = { ...App_DownloadStatus_Map_Object.value };
+  const completedIds = [];
   updates.forEach((item) => {
     if (!item?.bundleId) return;
     nextStatus[item.bundleId] = item.status || '';
+    if (item.status === '完成') {
+      completedIds.push(item.bundleId);
+    }
   });
   App_DownloadStatus_Map_Object.value = nextStatus;
+  if (completedIds.length) {
+    App_RemoveFromDownloadQueue_Function(completedIds);
+  }
 };
 
 const App_MarkCurrentDownloadCanceled_Function = () => {
@@ -346,10 +353,9 @@ onMounted(async () => {
         const successMatch = data.line.match(/\bsuccess=(true|false)\b/i);
         if (successMatch && !App_CancelAll_Active_Boolean.value) {
           const ok = successMatch[1].toLowerCase() === 'true';
-          App_DownloadStatus_Map_Object.value = {
-            ...App_DownloadStatus_Map_Object.value,
-            [data.bundleId]: ok ? '完成' : '失败'
-          };
+          App_SetDownloadStatusBatch_Function([
+            { bundleId: data.bundleId, status: ok ? '完成' : '失败' }
+          ]);
           return;
         }
         const current = App_DownloadStatus_Map_Object.value[data.bundleId];
