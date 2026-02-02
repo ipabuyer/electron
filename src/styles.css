@@ -111,12 +111,20 @@ a {
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 4px;
   justify-content: flex-end;
 }
 
+.topbar-left {
+  gap: 8px;
+}
+
 .topbar-center {
+  gap: 6px;
   justify-content: center;
+}
+
+.topbar-right {
+  gap: 6px;
 }
 
 .topbar-title {
