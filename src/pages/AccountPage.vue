@@ -65,7 +65,7 @@
           type="text"
           :disabled="AccountPage_IsLocked_Boolean"
         />
-        <small class="hint">可先只输入邮箱+密码获取验证码，再输入验证码登录</small>
+        <small class="hint">可先只输入邮箱+密码获取验证码，再输入验证码登录。如果收不到双重验证码，可打开account.apple.com收取双重验证码</small>
       </label>
       <label class="field">
         <span>加密密钥（keychain passphrase）</span>
@@ -97,7 +97,7 @@
             </svg>
           </button>
         </div>
-        <small class="hint">修改密钥需先退出登录并重新登录</small>
+        <small class="hint">修改密钥需先退出登录后重新登录</small>
       </label>
       </div>
     </div>
