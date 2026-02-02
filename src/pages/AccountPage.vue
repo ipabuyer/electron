@@ -3,7 +3,19 @@
     <h2 class="page-title">账户</h2>
     <div class="divider"></div>
 
-    <div class="form-grid">
+    <div class="account-form-grid">
+      <div v-if="AccountPage_IsLocked_Boolean" class="account-lock-overlay" aria-hidden="true">
+        <div class="account-lock-badge">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M7 10V8a5 5 0 0 1 10 0v2h1.5A1.5 1.5 0 0 1 20 11.5v7A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5v-7A1.5 1.5 0 0 1 5.5 10H7zm2 0h6V8a3 3 0 0 0-6 0v2z"
+            />
+          </svg>
+          <span>已锁定</span>
+        </div>
+      </div>
+      <div class="form-grid">
       <label class="field">
         <span>邮箱</span>
         <input
@@ -53,7 +65,7 @@
           type="text"
           :disabled="AccountPage_IsLocked_Boolean"
         />
-        <small class="hint">可先只输入邮箱+密码获取验证码，再输入验证码登录</small>
+        <small class="hint">可先只输入邮箱+密码获取验证码，再输入验证码登录。如果收不到双重验证码，可打开account.apple.com收取双重验证码</small>
       </label>
       <label class="field">
         <span>加密密钥（keychain passphrase）</span>
@@ -85,8 +97,9 @@
             </svg>
           </button>
         </div>
-        <small class="hint">修改密钥需先退出登录并重新登录</small>
+        <small class="hint">修改密钥需先退出登录后重新登录</small>
       </label>
+      </div>
     </div>
 
     <div class="button-row">
@@ -145,6 +158,34 @@ const AccountPage_ShowPassword_Boolean = ref(false);
 const AccountPage_ShowPassphrase_Boolean = ref(false);
 const AccountPage_IsLocked_Boolean = ref(false);
 
+const AccountPage_ParseAuthLine_Function = (text) => {
+  if (!text) return { message: '登录成功', email: '' };
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const targetLine = lines.find((line) => line.includes('success=')) || lines[0] || '';
+  const map = {};
+  const regex = /(\w+)=(".*?"|\S+)/g;
+  let match;
+  while ((match = regex.exec(targetLine)) !== null) {
+    const key = match[1];
+    let value = match[2] || '';
+    if (value.startsWith('"') && value.endsWith('"')) {
+      value = value.slice(1, -1);
+    }
+    map[key] = value;
+  }
+  const email = map.email || '';
+  const name = map.name || '';
+  let message = '登录成功';
+  if (name && email) {
+    message = `登录成功：${name}（${email}）`;
+  } else if (name) {
+    message = `登录成功：${name}`;
+  } else if (email) {
+    message = `登录成功：${email}`;
+  }
+  return { message, email };
+};
+
 watch(
   () => props.App_Passphrase_String,
   (value) => {
@@ -168,13 +209,18 @@ const AccountPage_SubmitLogin_AsyncFunction = async () => {
       passphrase: AccountPage_LoginForm_Object.passphrase
     });
     if (res.ok) {
+      const parsed = AccountPage_ParseAuthLine_Function(res.stdout || res.output || res.message);
+      if (parsed.email) {
+        AccountPage_LoginForm_Object.email = parsed.email;
+      }
       props.setApp_AuthState_Object({
-        email: AccountPage_LoginForm_Object.email,
+        email: parsed.email || AccountPage_LoginForm_Object.email,
         loggedIn: true,
         isTest: res.mock === true
       });
       props.setApp_Passphrase_String(AccountPage_LoginForm_Object.passphrase);
-      props.App_Notify_Function('success', res.mock ? '测试账户登录成功' : '登录成功');
+      const message = res.mock ? '测试账户登录成功' : parsed.message;
+      props.App_Notify_Function('success', message);
       AccountPage_IsLocked_Boolean.value = true;
     } else {
       const detail = res.stderr || res.error || '登录失败';
@@ -200,7 +246,12 @@ const AccountPage_CheckAuth_AsyncFunction = async (options = {}) => {
   try {
     const res = await window.electronAPI.authInfo({ passphrase });
     if (res.ok) {
-      const message = res.mock ? '测试账户已登录' : res.stdout || res.message || '已登录';
+      const parsed = AccountPage_ParseAuthLine_Function(res.stdout || res.output || res.message);
+      const email = res.email || parsed.email;
+      if (email) {
+        AccountPage_LoginForm_Object.email = email;
+      }
+      const message = res.mock ? '测试账户已登录' : parsed.message;
       if (!silent) {
         props.App_Notify_Function('info', message, { copyText: res.stdout || message });
       }

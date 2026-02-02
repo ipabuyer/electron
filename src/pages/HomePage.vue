@@ -62,7 +62,10 @@
             <tr
               v-for="app in HomePage_FilteredApps_Array"
               :key="app.bundleId"
-              :class="{ selected: HomePage_SelectedIds_Array.includes(app.bundleId) }"
+              :class="{
+                selected: HomePage_SelectedIds_Array.includes(app.bundleId),
+                'context-selected': HomePage_ContextMenu_AppId_String === app.bundleId
+              }"
               @click="HomePage_ToggleSelect_Function(app.bundleId)"
               @contextmenu.prevent="HomePage_HandleContextMenu_Function($event, app)"
             >
@@ -82,7 +85,7 @@
               <td>{{ app.bundleId }}</td>
               <td>{{ app.seller || '-' }}</td>
               <td>{{ app.version || '-' }}</td>
-              <td>{{ app.price ?? '-' }}</td>
+              <td>{{ HomePage_FormatPrice_Function(app.price) }}</td>
             </tr>
             <tr v-if="HomePage_FilteredApps_Array.length === 0">
               <td colspan="5" class="empty">暂无数据，请先搜索或调整筛选条件</td>
@@ -106,6 +109,17 @@
       </button>
       <button type="button" @click.stop="HomePage_HandleDownload_AsyncFunction([HomePage_ContextMenu_Object.app.bundleId])">
         下载此App
+      </button>
+      <div class="context-menu-divider" role="separator" aria-hidden="true"></div>
+      <button type="button" @click.stop="HomePage_CopyAppField_Function('name', HomePage_ContextMenu_Object.app)">
+        复制app名称
+      </button>
+      <button type="button" @click.stop="HomePage_CopyAppField_Function('bundleId', HomePage_ContextMenu_Object.app)">
+        复制app包名
+      </button>
+      <div class="context-menu-divider" role="separator" aria-hidden="true"></div>
+      <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('unbought', [HomePage_ContextMenu_Object.app.bundleId])">
+        标记为未购买
       </button>
       <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('purchased', [HomePage_ContextMenu_Object.app.bundleId])">
         标记为已购买
@@ -166,6 +180,13 @@ const HomePage_StatusLabel_Function = (status) => {
   return '未购买';
 };
 
+const HomePage_FormatPrice_Function = (value) => {
+  if (value === null || value === undefined || value === '') return '-';
+  if (typeof value === 'number') return value === 0 ? '免费' : value;
+  if (typeof value === 'string' && value.trim().toLowerCase() === 'free') return '免费';
+  return value;
+};
+
 const HomePage_Apps_Array = ref([]);
 const HomePage_StatusMap_Object = ref({});
 const HomePage_SelectedIds_Array = ref([]);
@@ -173,6 +194,7 @@ const HomePage_Filter_String = ref('all');
 const HomePage_IsSearching_Boolean = ref(false);
 const HomePage_ActionLoading_Boolean = ref(false);
 const HomePage_ContextMenu_Object = ref(null);
+const HomePage_ContextMenu_AppId_String = ref('');
 const HomePage_LastContextOpen_Number = ref(0);
 
 const HomePage_LoadStatuses_AsyncFunction = async () => {
@@ -364,8 +386,43 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
   }
 };
 
+const HomePage_CopyText_AsyncFunction = async (text) => {
+  if (!text) return false;
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return ok;
+  } catch (_error) {
+    return false;
+  }
+};
+
+const HomePage_CopyAppField_Function = async (field, app) => {
+  const value = app?.[field] || '';
+  const ok = await HomePage_CopyText_AsyncFunction(value);
+  if (ok && value) {
+    const label = field === 'bundleId' ? '包名' : '名称';
+    props.App_Notify_Function('success', `已复制app${label}`);
+  } else {
+    props.App_Notify_Function('error', '复制失败');
+  }
+  HomePage_CloseContextMenu_Function();
+};
+
 const HomePage_HandleContextMenu_Function = (event, app) => {
   event.stopPropagation();
+  HomePage_ContextMenu_AppId_String.value = app?.bundleId || '';
   HomePage_ContextMenu_Object.value = {
     mouseX: event.clientX + 2,
     mouseY: event.clientY - 6,
@@ -376,6 +433,7 @@ const HomePage_HandleContextMenu_Function = (event, app) => {
 
 const HomePage_CloseContextMenu_Function = () => {
   HomePage_ContextMenu_Object.value = null;
+  HomePage_ContextMenu_AppId_String.value = '';
 };
 
 const HomePage_SelectedAll_Boolean = computed(() =>

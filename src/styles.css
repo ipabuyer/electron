@@ -111,12 +111,20 @@ a {
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 4px;
   justify-content: flex-end;
 }
 
+.topbar-left {
+  gap: 8px;
+}
+
 .topbar-center {
+  gap: 6px;
   justify-content: center;
+}
+
+.topbar-right {
+  gap: 6px;
 }
 
 .topbar-title {
@@ -343,6 +351,10 @@ a {
   background: var(--bg-accent);
 }
 
+.data-table tbody tr.context-selected:not(.selected) {
+  background: var(--bg-elevated);
+}
+
 .col-app {
   min-width: 240px;
 }
@@ -400,6 +412,39 @@ a {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.account-form-grid {
+  position: relative;
+}
+
+.account-lock-overlay {
+  position: absolute;
+  inset: -8px;
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+}
+
+.account-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.account-lock-badge svg {
+  width: 16px;
+  height: 16px;
 }
 
 .field-row {
@@ -662,6 +707,12 @@ input[type='checkbox'] {
 
 .context-menu button:hover {
   background: var(--bg-elevated);
+}
+
+.context-menu-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
 }
 
 .modal-mask {
