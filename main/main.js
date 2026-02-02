@@ -219,7 +219,9 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
   try {
     const passphrase = payload.passphrase || currentAuth.passphrase || (await readPassphrase());
     const outputDir = payload.outputDir || getDownloadsDir();
+    let sentLog = false;
     const sendLog = (data) => {
+      sentLog = true;
       _event.sender.send('download:log', data);
     };
     currentDownloadController = {
@@ -234,6 +236,18 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
       onLog: sendLog,
       controller: currentDownloadController
     });
+    if (!sentLog && Array.isArray(result.results)) {
+      result.results.forEach((item) => {
+        const text = [item.stdout, item.stderr, item.output].filter(Boolean).join('\n');
+        if (!text) return;
+        text.split(/\r?\n/).forEach((line) => {
+          const cleaned = (line || '').trim();
+          if (cleaned) {
+            sendLog({ bundleId: item.bundleId, line: cleaned, stream: 'summary' });
+          }
+        });
+      });
+    }
     currentDownloadController = null;
     return { ...result, outputDir };
   } catch (error) {

@@ -9,15 +9,22 @@ const stripAnsi = (value) => (value ? value.replace(ANSI_REGEX, '') : value);
 
 const createLineBuffer = (onLine) => {
   let buffer = '';
-  return (chunk) => {
-    buffer += chunk;
-    const parts = buffer.split(/\r?\n/);
-    buffer = parts.pop() || '';
-    parts.forEach((line) => {
-      const cleaned = stripAnsi(line).trim();
-      if (cleaned) onLine(cleaned);
-    });
+  const emit = (line) => {
+    const cleaned = stripAnsi(line).trim();
+    if (cleaned) onLine(cleaned);
   };
+  const push = (chunk) => {
+    buffer += chunk;
+    const parts = buffer.split(/[\r\n]+/);
+    buffer = parts.pop() || '';
+    parts.forEach(emit);
+  };
+  const flush = () => {
+    if (!buffer) return;
+    emit(buffer);
+    buffer = '';
+  };
+  return { push, flush };
 };
 
 function getIpatoolPath() {
@@ -91,17 +98,19 @@ const runCommandStream = (args, onLog, controller) =>
     child.stdout.on('data', (data) => {
       const text = data.toString();
       stdout += text;
-      stdoutBuffer(text);
+      stdoutBuffer.push(text);
     });
     child.stderr.on('data', (data) => {
       const text = data.toString();
       stderr += text;
-      stderrBuffer(text);
+      stderrBuffer.push(text);
     });
     child.on('error', (err) => {
       resolve({ code: -1, output: err.message, stdout, stderr: err.message });
     });
     child.on('close', (code) => {
+      stdoutBuffer.flush();
+      stderrBuffer.flush();
       const cleanStdout = stripAnsi(stdout).trim();
       const cleanStderr = stripAnsi(stderr).trim();
       const output = `${cleanStdout}\n${cleanStderr}`.trim();
