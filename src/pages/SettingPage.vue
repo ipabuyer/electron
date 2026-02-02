@@ -1,5 +1,5 @@
 ﻿<template>
-  <section class="page narrow">
+  <section class="page narrow setting-page">
     <h2 class="page-title">设置</h2>
 
     <div class="form-grid">
@@ -63,7 +63,7 @@
       </div>
     </div>
 
-    <div class="panel setting-card danger-panel">
+    <div class="panel setting-card danger-panel setting-danger-card">
       <div class="danger-title">清空本地数据库</div>
       <div class="danger-desc">清空后已购买/已拥有记录将被移除，请谨慎操作。</div>
       <button class="ui-button danger" type="button" @click="SettingPage_ClearOpen_Boolean = true">

@@ -74,7 +74,13 @@
         @change-page="App_ActivePage_String = $event"
       />
 
-      <main class="app-content" :class="{ 'content-locked': App_ActivePage_String === 'download' }">
+      <main
+        class="app-content"
+        :class="{
+          'content-locked': App_ActivePage_String === 'download',
+          'content-setting': App_ActivePage_String === 'setting'
+        }"
+      >
         <HomePage
           v-if="App_ActivePage_String === 'home'"
           :App_CountryCode_String="App_CountryCode_String"

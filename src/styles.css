@@ -100,6 +100,10 @@ a {
   overflow: hidden;
 }
 
+.app-content.content-setting {
+  padding-bottom: 24px !important;
+}
+
 .app-topbar {
   height: 56px;
   display: grid;
@@ -292,6 +296,12 @@ a {
 
 .page.narrow {
   max-width: 560px;
+  padding-bottom: 16px;
+}
+
+.setting-page {
+  flex: 0 0 auto;
+  padding-bottom: 0;
 }
 
 .page-title {
@@ -584,6 +594,16 @@ a {
   margin-top: 4px;
   border: 1px solid rgba(220, 38, 38, 0.35);
   background: rgba(220, 38, 38, 0.08);
+}
+
+.setting-danger-card {
+  margin-bottom: 0;
+}
+
+.setting-page::after {
+  content: '';
+  display: block;
+  height: 0;
 }
 
 .danger-title {
