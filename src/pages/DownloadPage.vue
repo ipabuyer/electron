@@ -280,6 +280,14 @@ const DownloadPage_OpenDownloadPath_Function = async () => {
 
 const DownloadPage_CancelAll_AsyncFunction = async () => {
   if (!window.electronAPI?.cancelDownload) return;
+  const finals = new Set(['完成', '失败', '已取消']);
+  const updates = props.App_DownloadQueue_Array
+    .filter((app) => !finals.has(props.App_DownloadStatus_Map_Object[app.bundleId]))
+    .map((app) => ({ bundleId: app.bundleId, status: '已取消' }));
+  if (updates.length) {
+    props.App_SetDownloadStatusBatch_Function(updates);
+  }
+  window.dispatchEvent(new CustomEvent('download-cancel-all'));
   try {
     await window.electronAPI.cancelDownload();
     props.App_Notify_Function('info', '已请求终止所有下载');

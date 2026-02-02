@@ -180,6 +180,7 @@ const APP_DOWNLOAD_LOG_MAX_LINES = 400;
 const App_DownloadQueue_Array = ref([]);
 const App_DownloadStatus_Map_Object = ref({});
 const App_CurrentDownloadId_String = ref('');
+const App_CancelAll_Active_Boolean = ref(false);
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -343,7 +344,7 @@ onMounted(async () => {
       if (data.bundleId) {
         App_CurrentDownloadId_String.value = data.bundleId;
         const successMatch = data.line.match(/\bsuccess=(true|false)\b/i);
-        if (successMatch) {
+        if (successMatch && !App_CancelAll_Active_Boolean.value) {
           const ok = successMatch[1].toLowerCase() === 'true';
           App_DownloadStatus_Map_Object.value = {
             ...App_DownloadStatus_Map_Object.value,
@@ -367,9 +368,14 @@ onMounted(async () => {
   });
   window.addEventListener('download-start', () => {
     App_DownloadRunning_Boolean.value = true;
+    App_CancelAll_Active_Boolean.value = false;
   });
   window.addEventListener('download-end', () => {
     App_DownloadRunning_Boolean.value = false;
+    App_CancelAll_Active_Boolean.value = false;
+  });
+  window.addEventListener('download-cancel-all', () => {
+    App_CancelAll_Active_Boolean.value = true;
   });
 });
 
