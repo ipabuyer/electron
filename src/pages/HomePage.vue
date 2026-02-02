@@ -107,17 +107,19 @@
       <button type="button" @click.stop="HomePage_HandleDownload_AsyncFunction([HomePage_ContextMenu_Object.app.bundleId])">
         下载此App
       </button>
+      <div class="context-menu-divider" role="separator" aria-hidden="true"></div>
       <button type="button" @click.stop="HomePage_CopyAppField_Function('name', HomePage_ContextMenu_Object.app)">
         复制app名称
       </button>
       <button type="button" @click.stop="HomePage_CopyAppField_Function('bundleId', HomePage_ContextMenu_Object.app)">
         复制app包名
       </button>
-      <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('purchased', [HomePage_ContextMenu_Object.app.bundleId])">
-        标记为已购买
-      </button>
+      <div class="context-menu-divider" role="separator" aria-hidden="true"></div>
       <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('unbought', [HomePage_ContextMenu_Object.app.bundleId])">
         标记为未购买
+      </button>
+      <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('purchased', [HomePage_ContextMenu_Object.app.bundleId])">
+        标记为已购买
       </button>
       <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('owned', [HomePage_ContextMenu_Object.app.bundleId])">
         标记为已拥有

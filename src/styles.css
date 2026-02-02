@@ -672,6 +672,12 @@ input[type='checkbox'] {
   background: var(--bg-elevated);
 }
 
+.context-menu-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
 .modal-mask {
   position: fixed;
   inset: 0;
