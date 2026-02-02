@@ -101,6 +101,8 @@
           :App_RemoveFromDownloadQueue_Function="App_RemoveFromDownloadQueue_Function"
           :App_DownloadStatus_Map_Object="App_DownloadStatus_Map_Object"
           :App_SetDownloadStatusBatch_Function="App_SetDownloadStatusBatch_Function"
+          :App_CurrentDownloadId_String="App_CurrentDownloadId_String"
+          :App_MarkCurrentDownloadCanceled_Function="App_MarkCurrentDownloadCanceled_Function"
         />
         <AccountPage
           v-else-if="App_ActivePage_String === 'account'"
@@ -174,9 +176,10 @@ const App_Searching_Boolean = ref(false);
 const App_DownloadRunning_Boolean = ref(false);
 const App_DownloadLogs_Array = ref([]);
 const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
-const APP_DOWNLOAD_LOG_MAX_LINES = 15;
+const APP_DOWNLOAD_LOG_MAX_LINES = 400;
 const App_DownloadQueue_Array = ref([]);
 const App_DownloadStatus_Map_Object = ref({});
+const App_CurrentDownloadId_String = ref('');
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -306,6 +309,15 @@ const App_SetDownloadStatusBatch_Function = (updates = []) => {
   App_DownloadStatus_Map_Object.value = nextStatus;
 };
 
+const App_MarkCurrentDownloadCanceled_Function = () => {
+  const bundleId = App_CurrentDownloadId_String.value;
+  if (!bundleId) return;
+  App_DownloadStatus_Map_Object.value = {
+    ...App_DownloadStatus_Map_Object.value,
+    [bundleId]: '已取消'
+  };
+};
+
 onMounted(async () => {
   if (!window.electronAPI?.readPassphrase) return;
   const saved = await window.electronAPI.readPassphrase();
@@ -329,6 +341,7 @@ onMounted(async () => {
         App_DownloadLogs_Array.value = App_DownloadLogs_Array.value.slice(-APP_DOWNLOAD_LOG_MAX_LINES);
       }
       if (data.bundleId) {
+        App_CurrentDownloadId_String.value = data.bundleId;
         const current = App_DownloadStatus_Map_Object.value[data.bundleId];
         const finals = new Set(['完成', '失败', '已取消', '已跳过']);
         if (!finals.has(current)) {
