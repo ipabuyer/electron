@@ -129,8 +129,15 @@
       </transition-group>
     </div>
 
-    <div v-if="App_DownloadLog_Open_Boolean" class="download-log-panel">
-      <div class="download-log-header">
+    <div
+      v-if="App_DownloadLog_Open_Boolean"
+      class="download-log-panel"
+      :style="{
+        left: `${App_DownloadLog_Position_Object.x}px`,
+        top: `${App_DownloadLog_Position_Object.y}px`
+      }"
+    >
+      <div class="download-log-header" @pointerdown="App_StartDownloadDrag_Function">
         <span>下载日志</span>
         <div class="download-log-actions">
           <button class="ui-button ghost" type="button" @click="App_CopyText_Function(App_DownloadLog_Text_String)">
@@ -158,7 +165,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import HomePage from './pages/HomePage.vue';
 import AccountPage from './pages/AccountPage.vue';
@@ -184,6 +191,8 @@ const App_DownloadLog_Open_Boolean = ref(false);
 const App_DownloadRunning_Boolean = ref(false);
 const App_DownloadLogs_Array = ref([]);
 const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
+const App_DownloadLog_Position_Object = ref({ x: 0, y: 0 });
+const App_DownloadLog_Dragging_Object = ref({ active: false, offsetX: 0, offsetY: 0 });
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -278,7 +287,67 @@ const App_IncrementStatusRefreshSeed_Function = () => {
   App_StatusRefreshSeed_Number.value += 1;
 };
 
+const App_SetDownloadLogDefaultPosition_Function = () => {
+  const width = 520;
+  const height = 360;
+  const padding = 24;
+  const maxX = Math.max(padding, window.innerWidth - width - padding);
+  const maxY = Math.max(padding, window.innerHeight - height - 88);
+  App_DownloadLog_Position_Object.value = {
+    x: maxX,
+    y: maxY
+  };
+};
+
+const App_ClampDownloadLogPosition_Function = () => {
+  const width = 520;
+  const height = 360;
+  const padding = 12;
+  const maxX = Math.max(padding, window.innerWidth - width - padding);
+  const maxY = Math.max(padding, window.innerHeight - height - padding);
+  const current = App_DownloadLog_Position_Object.value;
+  App_DownloadLog_Position_Object.value = {
+    x: Math.min(Math.max(padding, current.x), maxX),
+    y: Math.min(Math.max(padding, current.y), maxY)
+  };
+};
+
+const App_HandleDownloadDragMove_Function = (event) => {
+  if (!App_DownloadLog_Dragging_Object.value.active) return;
+  const width = 520;
+  const height = 360;
+  const padding = 12;
+  const x = event.clientX - App_DownloadLog_Dragging_Object.value.offsetX;
+  const y = event.clientY - App_DownloadLog_Dragging_Object.value.offsetY;
+  const maxX = Math.max(padding, window.innerWidth - width - padding);
+  const maxY = Math.max(padding, window.innerHeight - height - padding);
+  App_DownloadLog_Position_Object.value = {
+    x: Math.min(Math.max(padding, x), maxX),
+    y: Math.min(Math.max(padding, y), maxY)
+  };
+};
+
+const App_StopDownloadDrag_Function = () => {
+  App_DownloadLog_Dragging_Object.value.active = false;
+};
+
+const App_StartDownloadDrag_Function = (event) => {
+  const panel = event.currentTarget?.closest('.download-log-panel');
+  if (!panel) return;
+  const rect = panel.getBoundingClientRect();
+  App_DownloadLog_Dragging_Object.value = {
+    active: true,
+    offsetX: event.clientX - rect.left,
+    offsetY: event.clientY - rect.top
+  };
+};
+
 onMounted(async () => {
+  App_SetDownloadLogDefaultPosition_Function();
+  window.addEventListener('pointermove', App_HandleDownloadDragMove_Function);
+  window.addEventListener('pointerup', App_StopDownloadDrag_Function);
+  window.addEventListener('blur', App_StopDownloadDrag_Function);
+  window.addEventListener('resize', App_ClampDownloadLogPosition_Function);
   if (!window.electronAPI?.readPassphrase) return;
   const saved = await window.electronAPI.readPassphrase();
   if (saved) {
@@ -309,5 +378,12 @@ onMounted(async () => {
   window.addEventListener('download-end', () => {
     App_DownloadRunning_Boolean.value = false;
   });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('pointermove', App_HandleDownloadDragMove_Function);
+  window.removeEventListener('pointerup', App_StopDownloadDrag_Function);
+  window.removeEventListener('blur', App_StopDownloadDrag_Function);
+  window.removeEventListener('resize', App_ClampDownloadLogPosition_Function);
 });
 </script>

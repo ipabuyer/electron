@@ -812,6 +812,8 @@ input[type='checkbox'] {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   font-weight: 600;
+  cursor: move;
+  user-select: none;
 }
 
 .download-log-actions {
