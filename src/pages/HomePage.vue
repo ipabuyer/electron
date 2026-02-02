@@ -19,9 +19,6 @@
           >
             添加到下载队列
           </button>
-          <button class="ui-button ghost" type="button" @click="HomePage_OpenDownloadLog_Function">
-            打开下载日志
-          </button>
         </div>
 
         <div class="filter-tabs">
@@ -379,10 +376,6 @@ const HomePage_HandleQueueAdd_Function = (bundleIds) => {
     props.App_Notify_Function('info', '这些应用已在下载队列中');
   }
   HomePage_CloseContextMenu_Function();
-};
-
-const HomePage_OpenDownloadLog_Function = () => {
-  window.dispatchEvent(new CustomEvent('download-log-open'));
 };
 
 const HomePage_CopyText_AsyncFunction = async (text) => {

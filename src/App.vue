@@ -91,12 +91,15 @@
           v-else-if="App_ActivePage_String === 'download'"
           :App_DownloadQueue_Array="App_DownloadQueue_Array"
           :App_Passphrase_String="App_Passphrase_String"
+          :App_AuthState_Object="App_AuthState_Object"
+          :App_DownloadPath_String="App_DownloadPath_String"
           :App_Notify_Function="App_Notify_Function"
           :App_DownloadRunning_Boolean="App_DownloadRunning_Boolean"
           :App_DownloadLogs_Array="App_DownloadLogs_Array"
           :App_DownloadLog_Text_String="App_DownloadLog_Text_String"
           :App_CopyText_Function="App_CopyText_Function"
           :App_ClearDownloadLog_Function="App_ClearDownloadLog_Function"
+          :App_RemoveFromDownloadQueue_Function="App_RemoveFromDownloadQueue_Function"
         />
         <AccountPage
           v-else-if="App_ActivePage_String === 'account'"
@@ -270,6 +273,14 @@ const App_AddToDownloadQueue_Function = (apps = []) => {
   });
   App_DownloadQueue_Array.value = Array.from(map.values());
   return added;
+};
+
+const App_RemoveFromDownloadQueue_Function = (bundleIds = []) => {
+  if (!Array.isArray(bundleIds) || bundleIds.length === 0) return 0;
+  const removeSet = new Set(bundleIds);
+  const before = App_DownloadQueue_Array.value.length;
+  App_DownloadQueue_Array.value = App_DownloadQueue_Array.value.filter((app) => !removeSet.has(app.bundleId));
+  return before - App_DownloadQueue_Array.value.length;
 };
 
 onMounted(async () => {

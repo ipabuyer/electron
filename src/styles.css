@@ -222,6 +222,17 @@ a {
   text-align: left;
 }
 
+.sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.sidebar-label {
+  line-height: 1;
+}
+
 .sidebar-collapsed .sidebar-item {
   justify-content: center;
 }
