@@ -342,6 +342,15 @@ onMounted(async () => {
       }
       if (data.bundleId) {
         App_CurrentDownloadId_String.value = data.bundleId;
+        const successMatch = data.line.match(/\bsuccess=(true|false)\b/i);
+        if (successMatch) {
+          const ok = successMatch[1].toLowerCase() === 'true';
+          App_DownloadStatus_Map_Object.value = {
+            ...App_DownloadStatus_Map_Object.value,
+            [data.bundleId]: ok ? '完成' : '失败'
+          };
+          return;
+        }
         const current = App_DownloadStatus_Map_Object.value[data.bundleId];
         const finals = new Set(['完成', '失败', '已取消', '已跳过']);
         if (!finals.has(current)) {
