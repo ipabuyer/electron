@@ -107,6 +107,12 @@
       <button type="button" @click.stop="HomePage_HandleDownload_AsyncFunction([HomePage_ContextMenu_Object.app.bundleId])">
         下载此App
       </button>
+      <button type="button" @click.stop="HomePage_CopyAppField_Function('name', HomePage_ContextMenu_Object.app)">
+        复制app名称
+      </button>
+      <button type="button" @click.stop="HomePage_CopyAppField_Function('bundleId', HomePage_ContextMenu_Object.app)">
+        复制app包名
+      </button>
       <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('purchased', [HomePage_ContextMenu_Object.app.bundleId])">
         标记为已购买
       </button>
@@ -362,6 +368,40 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
     HomePage_CloseContextMenu_Function();
     window.dispatchEvent(new CustomEvent('download-end'));
   }
+};
+
+const HomePage_CopyText_AsyncFunction = async (text) => {
+  if (!text) return false;
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return ok;
+  } catch (_error) {
+    return false;
+  }
+};
+
+const HomePage_CopyAppField_Function = async (field, app) => {
+  const value = app?.[field] || '';
+  const ok = await HomePage_CopyText_AsyncFunction(value);
+  if (ok && value) {
+    const label = field === 'bundleId' ? '包名' : '名称';
+    props.App_Notify_Function('success', `已复制app${label}`);
+  } else {
+    props.App_Notify_Function('error', '复制失败');
+  }
+  HomePage_CloseContextMenu_Function();
 };
 
 const HomePage_HandleContextMenu_Function = (event, app) => {
