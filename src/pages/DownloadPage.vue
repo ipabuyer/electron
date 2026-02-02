@@ -282,6 +282,12 @@ const DownloadPage_CancelAll_AsyncFunction = async () => {
 
 const DownloadPage_CancelCurrent_AsyncFunction = async () => {
   if (!window.electronAPI?.cancelDownloadCurrent) return;
+  const ids = DownloadPage_SelectedIds_Array.value.length
+    ? DownloadPage_SelectedIds_Array.value
+    : props.App_DownloadQueue_Array.map((app) => app.bundleId);
+  if (ids.length) {
+    props.App_SetDownloadStatusBatch_Function(ids.map((bundleId) => ({ bundleId, status: '已取消' })));
+  }
   try {
     await window.electronAPI.cancelDownloadCurrent();
     props.App_Notify_Function('info', '已请求终止当前下载');
