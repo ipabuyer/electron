@@ -92,6 +92,12 @@ a {
   min-width: 0;
   padding: 20px 24px 24px;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content.content-locked {
+  overflow: hidden;
 }
 
 .app-topbar {
@@ -252,6 +258,8 @@ a {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
+  min-height: 0;
 }
 
 .download-page {
@@ -260,7 +268,7 @@ a {
 }
 
 .download-page .table-panel {
-  flex: 1;
+  flex: 7 1 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -272,7 +280,14 @@ a {
 }
 
 .download-page .download-log-panel {
-  flex-shrink: 0;
+  flex: 3 1 0;
+  max-height: none;
+  height: auto;
+}
+
+.download-page .download-log-body {
+  flex: 1;
+  max-height: none;
 }
 
 .page.narrow {
