@@ -116,6 +116,9 @@
       <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('purchased', [HomePage_ContextMenu_Object.app.bundleId])">
         标记为已购买
       </button>
+      <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('unbought', [HomePage_ContextMenu_Object.app.bundleId])">
+        标记为未购买
+      </button>
       <button type="button" @click.stop="HomePage_HandleMarkStatus_AsyncFunction('owned', [HomePage_ContextMenu_Object.app.bundleId])">
         标记为已拥有
       </button>
