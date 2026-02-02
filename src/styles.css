@@ -351,6 +351,10 @@ a {
   background: var(--bg-accent);
 }
 
+.data-table tbody tr.context-selected:not(.selected) {
+  background: var(--bg-elevated);
+}
+
 .col-app {
   min-width: 240px;
 }

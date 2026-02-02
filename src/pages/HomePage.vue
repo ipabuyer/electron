@@ -62,7 +62,10 @@
             <tr
               v-for="app in HomePage_FilteredApps_Array"
               :key="app.bundleId"
-              :class="{ selected: HomePage_SelectedIds_Array.includes(app.bundleId) }"
+              :class="{
+                selected: HomePage_SelectedIds_Array.includes(app.bundleId),
+                'context-selected': HomePage_ContextMenu_AppId_String === app.bundleId
+              }"
               @click="HomePage_ToggleSelect_Function(app.bundleId)"
               @contextmenu.prevent="HomePage_HandleContextMenu_Function($event, app)"
             >
@@ -184,6 +187,7 @@ const HomePage_Filter_String = ref('all');
 const HomePage_IsSearching_Boolean = ref(false);
 const HomePage_ActionLoading_Boolean = ref(false);
 const HomePage_ContextMenu_Object = ref(null);
+const HomePage_ContextMenu_AppId_String = ref('');
 const HomePage_LastContextOpen_Number = ref(0);
 
 const HomePage_LoadStatuses_AsyncFunction = async () => {
@@ -411,6 +415,7 @@ const HomePage_CopyAppField_Function = async (field, app) => {
 
 const HomePage_HandleContextMenu_Function = (event, app) => {
   event.stopPropagation();
+  HomePage_ContextMenu_AppId_String.value = app?.bundleId || '';
   HomePage_ContextMenu_Object.value = {
     mouseX: event.clientX + 2,
     mouseY: event.clientY - 6,
@@ -421,6 +426,7 @@ const HomePage_HandleContextMenu_Function = (event, app) => {
 
 const HomePage_CloseContextMenu_Function = () => {
   HomePage_ContextMenu_Object.value = null;
+  HomePage_ContextMenu_AppId_String.value = '';
 };
 
 const HomePage_SelectedAll_Boolean = computed(() =>
