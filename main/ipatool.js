@@ -237,6 +237,11 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog, 
     if (controller?.canceled) {
       return { ok: false, results, canceled: true };
     }
+    if (controller?.skipCurrent) {
+      controller.skipCurrent = false;
+      results.push({ bundleId, ok: false, skipped: true, stdout: 'skipped' });
+      continue;
+    }
     const outFile = path.join(outputDir, `${bundleId}.ipa`);
     fs.mkdirSync(path.dirname(outFile), { recursive: true });
     const res = await runCommandStream([
@@ -252,7 +257,11 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog, 
     ], (line, stream) => {
       onLog?.({ bundleId, line, stream });
     }, controller);
-    results.push({ bundleId, target: outFile, ...res, ok: res.code === 0 });
+    const skipped = controller?.skipCurrent === true;
+    if (skipped) {
+      controller.skipCurrent = false;
+    }
+    results.push({ bundleId, target: outFile, ...res, ok: res.code === 0 && !skipped, skipped });
   }
   const ok = results.every((r) => r.ok);
   return { ok, results, canceled: controller?.canceled || false };

@@ -96,9 +96,9 @@
             v-if="App_DownloadRunning_Boolean"
             class="ui-button danger"
             type="button"
-            @click="DownloadPage_CancelAll_AsyncFunction"
+            @click="DownloadPage_CancelCurrent_AsyncFunction"
           >
-            终止下载
+            终止当前下载
           </button>
         </div>
       </div>
@@ -256,6 +256,16 @@ const DownloadPage_CancelAll_AsyncFunction = async () => {
   try {
     await window.electronAPI.cancelDownload();
     props.App_Notify_Function('info', '已请求终止所有下载');
+  } catch (_error) {
+    props.App_Notify_Function('error', '终止下载失败');
+  }
+};
+
+const DownloadPage_CancelCurrent_AsyncFunction = async () => {
+  if (!window.electronAPI?.cancelDownloadCurrent) return;
+  try {
+    await window.electronAPI.cancelDownloadCurrent();
+    props.App_Notify_Function('info', '已请求终止当前下载');
   } catch (_error) {
     props.App_Notify_Function('error', '终止下载失败');
   }

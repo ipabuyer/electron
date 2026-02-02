@@ -226,7 +226,8 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
     };
     currentDownloadController = {
       canceled: false,
-      child: null
+      child: null,
+      skipCurrent: false
     };
     const result = await download({
       bundleIds: payload.bundleIds,
@@ -259,6 +260,19 @@ ipcMain.handle('ipatool:download', async (_event, payload) => {
 ipcMain.handle('ipatool:download:cancel', async () => {
   if (currentDownloadController?.child) {
     currentDownloadController.canceled = true;
+    try {
+      currentDownloadController.child.kill();
+    } catch (_error) {
+      // ignore kill errors
+    }
+    return { ok: true };
+  }
+  return { ok: false, error: 'no active download' };
+});
+
+ipcMain.handle('ipatool:download:cancelCurrent', async () => {
+  if (currentDownloadController?.child) {
+    currentDownloadController.skipCurrent = true;
     try {
       currentDownloadController.child.kill();
     } catch (_error) {
