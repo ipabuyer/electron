@@ -19,6 +19,9 @@
           >
             下载
           </button>
+          <button class="ui-button ghost" type="button" @click="HomePage_OpenDownloadLog_Function">
+            打开下载日志
+          </button>
         </div>
 
         <div class="filter-tabs">
@@ -384,6 +387,10 @@ const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
     HomePage_CloseContextMenu_Function();
     window.dispatchEvent(new CustomEvent('download-end'));
   }
+};
+
+const HomePage_OpenDownloadLog_Function = () => {
+  window.dispatchEvent(new CustomEvent('download-log-open'));
 };
 
 const HomePage_CopyText_AsyncFunction = async (text) => {
