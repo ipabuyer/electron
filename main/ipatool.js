@@ -9,15 +9,22 @@ const stripAnsi = (value) => (value ? value.replace(ANSI_REGEX, '') : value);
 
 const createLineBuffer = (onLine) => {
   let buffer = '';
-  return (chunk) => {
-    buffer += chunk;
-    const parts = buffer.split(/\r?\n/);
-    buffer = parts.pop() || '';
-    parts.forEach((line) => {
-      const cleaned = stripAnsi(line).trim();
-      if (cleaned) onLine(cleaned);
-    });
+  const emit = (line) => {
+    const cleaned = stripAnsi(line).trim();
+    if (cleaned) onLine(cleaned);
   };
+  const push = (chunk) => {
+    buffer += chunk;
+    const parts = buffer.split(/[\r\n]+/);
+    buffer = parts.pop() || '';
+    parts.forEach(emit);
+  };
+  const flush = () => {
+    if (!buffer) return;
+    emit(buffer);
+    buffer = '';
+  };
+  return { push, flush };
 };
 
 function getIpatoolPath() {
@@ -91,17 +98,19 @@ const runCommandStream = (args, onLog, controller) =>
     child.stdout.on('data', (data) => {
       const text = data.toString();
       stdout += text;
-      stdoutBuffer(text);
+      stdoutBuffer.push(text);
     });
     child.stderr.on('data', (data) => {
       const text = data.toString();
       stderr += text;
-      stderrBuffer(text);
+      stderrBuffer.push(text);
     });
     child.on('error', (err) => {
       resolve({ code: -1, output: err.message, stdout, stderr: err.message });
     });
     child.on('close', (code) => {
+      stdoutBuffer.flush();
+      stderrBuffer.flush();
       const cleanStdout = stripAnsi(stdout).trim();
       const cleanStderr = stripAnsi(stderr).trim();
       const output = `${cleanStdout}\n${cleanStderr}`.trim();
@@ -228,6 +237,11 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog, 
     if (controller?.canceled) {
       return { ok: false, results, canceled: true };
     }
+    if (controller?.skipCurrent) {
+      controller.skipCurrent = false;
+      results.push({ bundleId, ok: false, skipped: true, stdout: 'skipped' });
+      continue;
+    }
     const outFile = path.join(outputDir, `${bundleId}.ipa`);
     fs.mkdirSync(path.dirname(outFile), { recursive: true });
     const res = await runCommandStream([
@@ -243,7 +257,11 @@ const download = async ({ bundleIds, passphrase, outputDir, currentAuth, onLog, 
     ], (line, stream) => {
       onLog?.({ bundleId, line, stream });
     }, controller);
-    results.push({ bundleId, target: outFile, ...res, ok: res.code === 0 });
+    const skipped = controller?.skipCurrent === true;
+    if (skipped) {
+      controller.skipCurrent = false;
+    }
+    results.push({ bundleId, target: outFile, ...res, ok: res.code === 0 && !skipped, skipped });
   }
   const ok = results.every((r) => r.ok);
   return { ok, results, canceled: controller?.canceled || false };

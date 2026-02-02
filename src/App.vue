@@ -74,7 +74,7 @@
         @change-page="App_ActivePage_String = $event"
       />
 
-      <main class="app-content">
+      <main class="app-content" :class="{ 'content-locked': App_ActivePage_String === 'download' }">
         <HomePage
           v-if="App_ActivePage_String === 'home'"
           :App_CountryCode_String="App_CountryCode_String"
@@ -83,8 +83,26 @@
           :App_StatusRefreshSeed_Number="App_StatusRefreshSeed_Number"
           :App_SearchTerm_String="App_SearchTerm_String"
           :App_SearchTrigger_Number="App_SearchTrigger_Number"
+          :App_AddToDownloadQueue_Function="App_AddToDownloadQueue_Function"
           :App_Notify_Function="App_Notify_Function"
           @searching="App_Searching_Boolean = $event"
+        />
+        <DownloadPage
+          v-else-if="App_ActivePage_String === 'download'"
+          :App_DownloadQueue_Array="App_DownloadQueue_Array"
+          :App_Passphrase_String="App_Passphrase_String"
+          :App_DownloadPath_String="App_DownloadPath_String"
+          :App_Notify_Function="App_Notify_Function"
+          :App_DownloadRunning_Boolean="App_DownloadRunning_Boolean"
+          :App_DownloadLogs_Array="App_DownloadLogs_Array"
+          :App_DownloadLog_Text_String="App_DownloadLog_Text_String"
+          :App_CopyText_Function="App_CopyText_Function"
+          :App_ClearDownloadLog_Function="App_ClearDownloadLog_Function"
+          :App_RemoveFromDownloadQueue_Function="App_RemoveFromDownloadQueue_Function"
+          :App_DownloadStatus_Map_Object="App_DownloadStatus_Map_Object"
+          :App_SetDownloadStatusBatch_Function="App_SetDownloadStatusBatch_Function"
+          :App_CurrentDownloadId_String="App_CurrentDownloadId_String"
+          :App_MarkCurrentDownloadCanceled_Function="App_MarkCurrentDownloadCanceled_Function"
         />
         <AccountPage
           v-else-if="App_ActivePage_String === 'account'"
@@ -128,32 +146,6 @@
         </div>
       </transition-group>
     </div>
-
-    <div v-if="App_DownloadLog_Open_Boolean" class="download-log-panel">
-      <div class="download-log-header">
-        <span>下载日志</span>
-        <div class="download-log-actions">
-          <button class="ui-button ghost" type="button" @click="App_CopyText_Function(App_DownloadLog_Text_String)">
-            复制
-          </button>
-          <button class="ui-button ghost" type="button" @click="App_ClearDownloadLog_Function">清空</button>
-          <button
-            v-if="App_DownloadRunning_Boolean"
-            class="ui-button danger"
-            type="button"
-            @click="App_CancelDownload_Function"
-          >
-            取消下载
-          </button>
-          <button class="ui-button text" type="button" @click="App_DownloadLog_Open_Boolean = false">关闭</button>
-        </div>
-      </div>
-      <div class="download-log-body">
-        <div v-for="(line, index) in App_DownloadLogs_Array" :key="`${index}-${line}`" class="download-log-line">
-          {{ line }}
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -161,6 +153,7 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import HomePage from './pages/HomePage.vue';
+import DownloadPage from './pages/DownloadPage.vue';
 import AccountPage from './pages/AccountPage.vue';
 import SettingPage from './pages/SettingPage.vue';
 import AppIcon from '../assets/Square44x44Logo.scale-200.png';
@@ -180,10 +173,14 @@ const App_SidebarCollapsed_Boolean = ref(false);
 const App_SearchTerm_String = ref('');
 const App_SearchTrigger_Number = ref(0);
 const App_Searching_Boolean = ref(false);
-const App_DownloadLog_Open_Boolean = ref(false);
 const App_DownloadRunning_Boolean = ref(false);
 const App_DownloadLogs_Array = ref([]);
 const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
+const APP_DOWNLOAD_LOG_MAX_LINES = 400;
+const App_DownloadQueue_Array = ref([]);
+const App_DownloadStatus_Map_Object = ref({});
+const App_CurrentDownloadId_String = ref('');
+const App_CancelAll_Active_Boolean = ref(false);
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -224,12 +221,6 @@ const App_CopyText_Function = async (text) => {
 
 const App_ClearDownloadLog_Function = () => {
   App_DownloadLogs_Array.value = [];
-};
-
-const App_CancelDownload_Function = async () => {
-  if (!window.electronAPI?.cancelDownload) return;
-  await window.electronAPI.cancelDownload();
-  App_DownloadLogs_Array.value.push('已请求取消下载…');
 };
 
 const App_ShowSearch_Boolean = computed(() => App_ActivePage_String.value === 'home');
@@ -273,9 +264,66 @@ const App_SetDownloadPath_Function = (value) => {
   App_DownloadPath_String.value = value;
 };
 
-
 const App_IncrementStatusRefreshSeed_Function = () => {
   App_StatusRefreshSeed_Number.value += 1;
+};
+
+const App_AddToDownloadQueue_Function = (apps = []) => {
+  if (!Array.isArray(apps) || apps.length === 0) return 0;
+  const map = new Map(App_DownloadQueue_Array.value.map((item) => [item.bundleId, item]));
+  let added = 0;
+  apps.forEach((app) => {
+    if (!app?.bundleId || map.has(app.bundleId)) return;
+    map.set(app.bundleId, app);
+    added += 1;
+    App_DownloadStatus_Map_Object.value = {
+      ...App_DownloadStatus_Map_Object.value,
+      [app.bundleId]: '等待下载'
+    };
+  });
+  App_DownloadQueue_Array.value = Array.from(map.values());
+  return added;
+};
+
+const App_RemoveFromDownloadQueue_Function = (bundleIds = []) => {
+  if (!Array.isArray(bundleIds) || bundleIds.length === 0) return 0;
+  const removeSet = new Set(bundleIds);
+  const before = App_DownloadQueue_Array.value.length;
+  App_DownloadQueue_Array.value = App_DownloadQueue_Array.value.filter((app) => !removeSet.has(app.bundleId));
+  if (before !== App_DownloadQueue_Array.value.length) {
+    const nextStatus = { ...App_DownloadStatus_Map_Object.value };
+    bundleIds.forEach((id) => {
+      delete nextStatus[id];
+    });
+    App_DownloadStatus_Map_Object.value = nextStatus;
+  }
+  return before - App_DownloadQueue_Array.value.length;
+};
+
+const App_SetDownloadStatusBatch_Function = (updates = []) => {
+  if (!Array.isArray(updates) || updates.length === 0) return;
+  const nextStatus = { ...App_DownloadStatus_Map_Object.value };
+  const completedIds = [];
+  updates.forEach((item) => {
+    if (!item?.bundleId) return;
+    nextStatus[item.bundleId] = item.status || '';
+    if (item.status === '完成') {
+      completedIds.push(item.bundleId);
+    }
+  });
+  App_DownloadStatus_Map_Object.value = nextStatus;
+  if (completedIds.length) {
+    App_RemoveFromDownloadQueue_Function(completedIds);
+  }
+};
+
+const App_MarkCurrentDownloadCanceled_Function = () => {
+  const bundleId = App_CurrentDownloadId_String.value;
+  if (!bundleId) return;
+  App_DownloadStatus_Map_Object.value = {
+    ...App_DownloadStatus_Map_Object.value,
+    [bundleId]: '已取消'
+  };
 };
 
 onMounted(async () => {
@@ -297,17 +345,44 @@ onMounted(async () => {
       if (!data?.line) return;
       const prefix = data.bundleId ? `[${data.bundleId}] ` : '';
       App_DownloadLogs_Array.value.push(`${prefix}${data.line}`);
-      App_DownloadLog_Open_Boolean.value = true;
+      if (App_DownloadLogs_Array.value.length > APP_DOWNLOAD_LOG_MAX_LINES) {
+        App_DownloadLogs_Array.value = App_DownloadLogs_Array.value.slice(-APP_DOWNLOAD_LOG_MAX_LINES);
+      }
+      if (data.bundleId) {
+        App_CurrentDownloadId_String.value = data.bundleId;
+        const successMatch = data.line.match(/\bsuccess=(true|false)\b/i);
+        if (successMatch && !App_CancelAll_Active_Boolean.value) {
+          const ok = successMatch[1].toLowerCase() === 'true';
+          App_SetDownloadStatusBatch_Function([
+            { bundleId: data.bundleId, status: ok ? '完成' : '失败' }
+          ]);
+          return;
+        }
+        const current = App_DownloadStatus_Map_Object.value[data.bundleId];
+        const finals = new Set(['完成', '失败', '已取消', '已跳过']);
+        if (!finals.has(current)) {
+          App_DownloadStatus_Map_Object.value = {
+            ...App_DownloadStatus_Map_Object.value,
+            [data.bundleId]: '下载中'
+          };
+        }
+      }
     });
   }
   window.addEventListener('download-log-open', () => {
-    App_DownloadLog_Open_Boolean.value = true;
+    App_ActivePage_String.value = 'download';
   });
   window.addEventListener('download-start', () => {
     App_DownloadRunning_Boolean.value = true;
+    App_CancelAll_Active_Boolean.value = false;
   });
   window.addEventListener('download-end', () => {
     App_DownloadRunning_Boolean.value = false;
+    App_CancelAll_Active_Boolean.value = false;
+  });
+  window.addEventListener('download-cancel-all', () => {
+    App_CancelAll_Active_Boolean.value = true;
   });
 });
+
 </script>

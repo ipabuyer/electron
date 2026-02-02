@@ -92,6 +92,12 @@ a {
   min-width: 0;
   padding: 20px 24px 24px;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content.content-locked {
+  overflow: hidden;
 }
 
 .app-topbar {
@@ -222,6 +228,17 @@ a {
   text-align: left;
 }
 
+.sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.sidebar-label {
+  line-height: 1;
+}
+
 .sidebar-collapsed .sidebar-item {
   justify-content: center;
 }
@@ -241,6 +258,36 @@ a {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.download-page {
+  flex: 1;
+  min-height: 0;
+}
+
+.download-page .table-panel {
+  flex: 7 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.download-page .table-container {
+  flex: 1;
+  max-height: none;
+}
+
+.download-page .download-log-panel {
+  flex: 3 1 0;
+  max-height: none;
+  height: auto;
+}
+
+.download-page .download-log-body {
+  flex: 1;
+  max-height: none;
 }
 
 .page.narrow {
@@ -374,6 +421,35 @@ a {
 .col-price {
   width: 10%;
   min-width: 56px;
+}
+
+.col-status {
+  width: 18%;
+  min-width: 120px;
+}
+
+.status-muted {
+  color: var(--text-muted);
+}
+
+.status-primary {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.status-success {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.status-warning {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.status-error {
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .app-cell {
@@ -790,11 +866,8 @@ input[type='checkbox'] {
 }
 
 .download-log-panel {
-  position: fixed;
-  right: 24px;
-  bottom: 88px;
-  width: min(520px, 90vw);
-  max-height: 50vh;
+  width: 100%;
+  max-height: 160px;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -802,7 +875,6 @@ input[type='checkbox'] {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 99998;
 }
 
 .download-log-header {
@@ -820,6 +892,8 @@ input[type='checkbox'] {
 }
 
 .download-log-body {
+  flex: 1;
+  max-height: 110px;
   padding: 12px 14px;
   overflow: auto;
   font-size: 12px;
