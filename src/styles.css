@@ -420,9 +420,9 @@ a {
 
 .account-lock-overlay {
   position: absolute;
-  inset: 0;
+  inset: -8px;
   background: rgba(15, 23, 42, 0.06);
-  border-radius: 12px;
+  border-radius: 16px;
   z-index: 2;
   display: grid;
   place-items: center;
