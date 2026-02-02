@@ -91,7 +91,6 @@
           v-else-if="App_ActivePage_String === 'download'"
           :App_DownloadQueue_Array="App_DownloadQueue_Array"
           :App_Passphrase_String="App_Passphrase_String"
-          :App_AuthState_Object="App_AuthState_Object"
           :App_DownloadPath_String="App_DownloadPath_String"
           :App_Notify_Function="App_Notify_Function"
           :App_DownloadRunning_Boolean="App_DownloadRunning_Boolean"
