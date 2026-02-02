@@ -85,7 +85,7 @@
               <td>{{ app.bundleId }}</td>
               <td>{{ app.seller || '-' }}</td>
               <td>{{ app.version || '-' }}</td>
-              <td>{{ app.price ?? '-' }}</td>
+              <td>{{ HomePage_FormatPrice_Function(app.price) }}</td>
             </tr>
             <tr v-if="HomePage_FilteredApps_Array.length === 0">
               <td colspan="5" class="empty">暂无数据，请先搜索或调整筛选条件</td>
@@ -178,6 +178,13 @@ const HomePage_StatusLabel_Function = (status) => {
   if (status === 'purchased') return '已购买';
   if (status === 'owned') return '已拥有';
   return '未购买';
+};
+
+const HomePage_FormatPrice_Function = (value) => {
+  if (value === null || value === undefined || value === '') return '-';
+  if (typeof value === 'number') return value === 0 ? '免费' : value;
+  if (typeof value === 'string' && value.trim().toLowerCase() === 'free') return '免费';
+  return value;
 };
 
 const HomePage_Apps_Array = ref([]);
