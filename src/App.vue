@@ -155,7 +155,7 @@
           <button class="ui-button text" type="button" @click="App_DownloadLog_Open_Boolean = false">关闭</button>
         </div>
       </div>
-      <div class="download-log-body">
+      <div class="download-log-body" ref="App_DownloadLogBody_Ref">
         <div v-for="(line, index) in App_DownloadLogs_Array" :key="`${index}-${line}`" class="download-log-line">
           {{ line }}
         </div>
@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import HomePage from './pages/HomePage.vue';
 import AccountPage from './pages/AccountPage.vue';
@@ -193,6 +193,8 @@ const App_DownloadLogs_Array = ref([]);
 const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
 const App_DownloadLog_Position_Object = ref({ x: 0, y: 0 });
 const App_DownloadLog_Dragging_Object = ref({ active: false, offsetX: 0, offsetY: 0 });
+const App_DownloadLogBody_Ref = ref(null);
+const APP_DOWNLOAD_LOG_MAX_LINES = 15;
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -366,7 +368,15 @@ onMounted(async () => {
       if (!data?.line) return;
       const prefix = data.bundleId ? `[${data.bundleId}] ` : '';
       App_DownloadLogs_Array.value.push(`${prefix}${data.line}`);
+      if (App_DownloadLogs_Array.value.length > APP_DOWNLOAD_LOG_MAX_LINES) {
+        App_DownloadLogs_Array.value = App_DownloadLogs_Array.value.slice(-APP_DOWNLOAD_LOG_MAX_LINES);
+      }
       App_DownloadLog_Open_Boolean.value = true;
+      nextTick(() => {
+        const el = App_DownloadLogBody_Ref.value;
+        if (!el) return;
+        el.scrollTop = el.scrollHeight;
+      });
     });
   }
   window.addEventListener('download-log-open', () => {
