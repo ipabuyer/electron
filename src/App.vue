@@ -99,6 +99,8 @@
           :App_CopyText_Function="App_CopyText_Function"
           :App_ClearDownloadLog_Function="App_ClearDownloadLog_Function"
           :App_RemoveFromDownloadQueue_Function="App_RemoveFromDownloadQueue_Function"
+          :App_DownloadStatus_Map_Object="App_DownloadStatus_Map_Object"
+          :App_SetDownloadStatusBatch_Function="App_SetDownloadStatusBatch_Function"
         />
         <AccountPage
           v-else-if="App_ActivePage_String === 'account'"
@@ -174,6 +176,7 @@ const App_DownloadLogs_Array = ref([]);
 const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
 const APP_DOWNLOAD_LOG_MAX_LINES = 15;
 const App_DownloadQueue_Array = ref([]);
+const App_DownloadStatus_Map_Object = ref({});
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -269,6 +272,10 @@ const App_AddToDownloadQueue_Function = (apps = []) => {
     if (!app?.bundleId || map.has(app.bundleId)) return;
     map.set(app.bundleId, app);
     added += 1;
+    App_DownloadStatus_Map_Object.value = {
+      ...App_DownloadStatus_Map_Object.value,
+      [app.bundleId]: '等待下载'
+    };
   });
   App_DownloadQueue_Array.value = Array.from(map.values());
   return added;
@@ -279,7 +286,24 @@ const App_RemoveFromDownloadQueue_Function = (bundleIds = []) => {
   const removeSet = new Set(bundleIds);
   const before = App_DownloadQueue_Array.value.length;
   App_DownloadQueue_Array.value = App_DownloadQueue_Array.value.filter((app) => !removeSet.has(app.bundleId));
+  if (before !== App_DownloadQueue_Array.value.length) {
+    const nextStatus = { ...App_DownloadStatus_Map_Object.value };
+    bundleIds.forEach((id) => {
+      delete nextStatus[id];
+    });
+    App_DownloadStatus_Map_Object.value = nextStatus;
+  }
   return before - App_DownloadQueue_Array.value.length;
+};
+
+const App_SetDownloadStatusBatch_Function = (updates = []) => {
+  if (!Array.isArray(updates) || updates.length === 0) return;
+  const nextStatus = { ...App_DownloadStatus_Map_Object.value };
+  updates.forEach((item) => {
+    if (!item?.bundleId) return;
+    nextStatus[item.bundleId] = item.status || '';
+  });
+  App_DownloadStatus_Map_Object.value = nextStatus;
 };
 
 onMounted(async () => {
@@ -303,6 +327,16 @@ onMounted(async () => {
       App_DownloadLogs_Array.value.push(`${prefix}${data.line}`);
       if (App_DownloadLogs_Array.value.length > APP_DOWNLOAD_LOG_MAX_LINES) {
         App_DownloadLogs_Array.value = App_DownloadLogs_Array.value.slice(-APP_DOWNLOAD_LOG_MAX_LINES);
+      }
+      if (data.bundleId) {
+        const current = App_DownloadStatus_Map_Object.value[data.bundleId];
+        const finals = new Set(['完成', '失败', '已取消', '已跳过']);
+        if (!finals.has(current)) {
+          App_DownloadStatus_Map_Object.value = {
+            ...App_DownloadStatus_Map_Object.value,
+            [data.bundleId]: '下载中'
+          };
+        }
       }
     });
   }

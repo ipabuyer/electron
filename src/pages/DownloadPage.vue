@@ -46,9 +46,7 @@
                 </label>
               </th>
               <th class="col-id">AppID</th>
-              <th class="col-seller">开发者</th>
-              <th class="col-version">版本号</th>
-              <th class="col-price">价格</th>
+              <th class="col-status">下载状态</th>
             </tr>
           </thead>
           <tbody>
@@ -72,12 +70,12 @@
                 </div>
               </td>
               <td>{{ app.bundleId }}</td>
-              <td>{{ app.seller || '-' }}</td>
-              <td>{{ app.version || '-' }}</td>
-              <td>{{ DownloadPage_FormatPrice_Function(app.price) }}</td>
+              <td :class="DownloadPage_StatusClass_Function(app.bundleId)">
+                {{ App_DownloadStatus_Map_Object[app.bundleId] || '-' }}
+              </td>
             </tr>
             <tr v-if="App_DownloadQueue_Array.length === 0">
-              <td colspan="5" class="empty">下载队列为空，请先添加应用</td>
+              <td colspan="3" class="empty">下载队列为空，请先添加应用</td>
             </tr>
           </tbody>
         </table>
@@ -154,19 +152,20 @@ const props = defineProps({
   App_RemoveFromDownloadQueue_Function: {
     type: Function,
     required: true
+  },
+  App_DownloadStatus_Map_Object: {
+    type: Object,
+    default: () => ({})
+  },
+  App_SetDownloadStatusBatch_Function: {
+    type: Function,
+    required: true
   }
 });
 
 const DownloadPage_ActionLoading_Boolean = ref(false);
 const DownloadPage_SelectedIds_Array = ref([]);
 const DownloadPage_LogBody_Ref = ref(null);
-
-const DownloadPage_FormatPrice_Function = (value) => {
-  if (value === null || value === undefined || value === '') return '-';
-  if (typeof value === 'number') return value === 0 ? '免费' : value;
-  if (typeof value === 'string' && value.trim().toLowerCase() === 'free') return '免费';
-  return value;
-};
 
 const DownloadPage_ToggleSelect_Function = (bundleId) => {
   if (DownloadPage_SelectedIds_Array.value.includes(bundleId)) {
@@ -193,6 +192,15 @@ const DownloadPage_PartialSelect_Boolean = computed(() =>
   !DownloadPage_SelectedAll_Boolean.value
 );
 
+const DownloadPage_StatusClass_Function = (bundleId) => {
+  const status = props.App_DownloadStatus_Map_Object[bundleId];
+  if (status === '完成') return 'status-success';
+  if (status === '失败') return 'status-error';
+  if (status === '已取消') return 'status-warning';
+  if (status === '下载中') return 'status-primary';
+  return 'status-muted';
+};
+
 const DownloadPage_StartQueue_AsyncFunction = async () => {
   const ids = DownloadPage_SelectedIds_Array.value.length
     ? DownloadPage_SelectedIds_Array.value
@@ -201,6 +209,7 @@ const DownloadPage_StartQueue_AsyncFunction = async () => {
     props.App_Notify_Function('warning', '下载队列为空');
     return;
   }
+  props.App_SetDownloadStatusBatch_Function(ids.map((bundleId) => ({ bundleId, status: '等待下载' })));
   DownloadPage_ActionLoading_Boolean.value = true;
   try {
     window.dispatchEvent(new CustomEvent('download-start'));
@@ -209,6 +218,16 @@ const DownloadPage_StartQueue_AsyncFunction = async () => {
       passphrase: props.App_Passphrase_String || ''
     };
     const res = await window.electronAPI.download(JSON.parse(JSON.stringify(payload)));
+    if (Array.isArray(res.results)) {
+      const updates = res.results.map((item) => {
+        let status = '失败';
+        if (item.canceled || res.canceled) status = '已取消';
+        else if (item.skipped) status = '已取消';
+        else if (item.ok) status = '完成';
+        return { bundleId: item.bundleId, status };
+      });
+      props.App_SetDownloadStatusBatch_Function(updates);
+    }
     if (res.ok) {
       props.App_Notify_Function('success', `下载完成，输出目录：${res.outputDir || ''}`);
     } else if (res.canceled) {
@@ -270,7 +289,6 @@ const DownloadPage_CancelCurrent_AsyncFunction = async () => {
     props.App_Notify_Function('error', '终止下载失败');
   }
 };
-
 
 watch(
   () => props.App_DownloadLogs_Array,
