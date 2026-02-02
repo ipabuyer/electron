@@ -3,7 +3,19 @@
     <h2 class="page-title">账户</h2>
     <div class="divider"></div>
 
-    <div class="form-grid">
+    <div class="account-form-grid">
+      <div v-if="AccountPage_IsLocked_Boolean" class="account-lock-overlay" aria-hidden="true">
+        <div class="account-lock-badge">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M7 10V8a5 5 0 0 1 10 0v2h1.5A1.5 1.5 0 0 1 20 11.5v7A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5v-7A1.5 1.5 0 0 1 5.5 10H7zm2 0h6V8a3 3 0 0 0-6 0v2z"
+            />
+          </svg>
+          <span>已锁定</span>
+        </div>
+      </div>
+      <div class="form-grid">
       <label class="field">
         <span>邮箱</span>
         <input
@@ -87,6 +99,7 @@
         </div>
         <small class="hint">修改密钥需先退出登录并重新登录</small>
       </label>
+      </div>
     </div>
 
     <div class="button-row">
