@@ -290,8 +290,8 @@ const App_IncrementStatusRefreshSeed_Function = () => {
 };
 
 const App_SetDownloadLogDefaultPosition_Function = () => {
-  const width = 520;
-  const height = 360;
+  const width = 640;
+  const height = 160;
   const padding = 24;
   const maxX = Math.max(padding, window.innerWidth - width - padding);
   const maxY = Math.max(padding, window.innerHeight - height - 88);
@@ -302,8 +302,8 @@ const App_SetDownloadLogDefaultPosition_Function = () => {
 };
 
 const App_ClampDownloadLogPosition_Function = () => {
-  const width = 520;
-  const height = 360;
+  const width = 640;
+  const height = 160;
   const padding = 12;
   const maxX = Math.max(padding, window.innerWidth - width - padding);
   const maxY = Math.max(padding, window.innerHeight - height - padding);
@@ -316,8 +316,8 @@ const App_ClampDownloadLogPosition_Function = () => {
 
 const App_HandleDownloadDragMove_Function = (event) => {
   if (!App_DownloadLog_Dragging_Object.value.active) return;
-  const width = 520;
-  const height = 360;
+  const width = 640;
+  const height = 160;
   const padding = 12;
   const x = event.clientX - App_DownloadLog_Dragging_Object.value.offsetX;
   const y = event.clientY - App_DownloadLog_Dragging_Object.value.offsetY;

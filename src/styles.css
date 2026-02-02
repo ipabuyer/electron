@@ -793,8 +793,8 @@ input[type='checkbox'] {
   position: fixed;
   right: 24px;
   bottom: 88px;
-  width: min(520px, 90vw);
-  max-height: 50vh;
+  width: min(640px, 90vw);
+  max-height: 160px;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -822,6 +822,8 @@ input[type='checkbox'] {
 }
 
 .download-log-body {
+  flex: 1;
+  max-height: 110px;
   padding: 12px 14px;
   overflow: auto;
   font-size: 12px;
