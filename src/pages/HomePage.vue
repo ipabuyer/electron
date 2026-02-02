@@ -15,9 +15,9 @@
             class="ui-button ghost"
             type="button"
             :disabled="HomePage_ActionLoading_Boolean"
-            @click="HomePage_HandleDownload_AsyncFunction()"
+            @click="HomePage_HandleQueueAdd_Function()"
           >
-            下载
+            添加到下载队列
           </button>
           <button class="ui-button ghost" type="button" @click="HomePage_OpenDownloadLog_Function">
             打开下载日志
@@ -110,8 +110,8 @@
       <button type="button" @click.stop="HomePage_HandlePurchase_AsyncFunction([HomePage_ContextMenu_Object.app.bundleId])">
         购买此App
       </button>
-      <button type="button" @click.stop="HomePage_HandleDownload_AsyncFunction([HomePage_ContextMenu_Object.app.bundleId])">
-        下载此App
+      <button type="button" @click.stop="HomePage_HandleQueueAdd_Function([HomePage_ContextMenu_Object.app.bundleId])">
+        添加到下载队列
       </button>
       <div class="context-menu-divider" role="separator" aria-hidden="true"></div>
       <button type="button" @click.stop="HomePage_CopyAppField_Function('name', HomePage_ContextMenu_Object.app)">
@@ -163,6 +163,10 @@ const props = defineProps({
     default: 0
   },
   App_Notify_Function: {
+    type: Function,
+    required: true
+  },
+  App_AddToDownloadQueue_Function: {
     type: Function,
     required: true
   }
@@ -360,33 +364,21 @@ const HomePage_HandlePurchase_AsyncFunction = async (bundleIds) => {
   }
 };
 
-const HomePage_HandleDownload_AsyncFunction = async (bundleIds) => {
+const HomePage_HandleQueueAdd_Function = (bundleIds) => {
   const ids = bundleIds && bundleIds.length ? bundleIds : HomePage_SelectedIds_Array.value;
   if (!ids.length) {
-    props.App_Notify_Function('warning', '请选择要下载的应用');
+    props.App_Notify_Function('warning', '请选择要加入队列的应用');
     return;
   }
-  HomePage_ActionLoading_Boolean.value = true;
-  try {
-    window.dispatchEvent(new CustomEvent('download-start'));
-    window.dispatchEvent(new CustomEvent('download-log-open'));
-    const payload = {
-      bundleIds: [...ids],
-      passphrase: props.App_Passphrase_String || ''
-    };
-    const res = await window.electronAPI.download(JSON.parse(JSON.stringify(payload)));
-    if (res.ok) {
-      props.App_Notify_Function('success', `下载完成，输出目录：${res.outputDir || ''}`);
-    } else {
-      props.App_Notify_Function('error', res.error || res.message || '下载失败');
-    }
-  } catch (error) {
-    props.App_Notify_Function('error', error.message || '下载失败');
-  } finally {
-    HomePage_ActionLoading_Boolean.value = false;
-    HomePage_CloseContextMenu_Function();
-    window.dispatchEvent(new CustomEvent('download-end'));
+  const appMap = new Map(HomePage_Apps_Array.value.map((app) => [app.bundleId, app]));
+  const items = ids.map((id) => appMap.get(id)).filter(Boolean);
+  const added = props.App_AddToDownloadQueue_Function(items);
+  if (added > 0) {
+    props.App_Notify_Function('success', `已加入下载队列 ${added} 个应用`);
+  } else {
+    props.App_Notify_Function('info', '这些应用已在下载队列中');
   }
+  HomePage_CloseContextMenu_Function();
 };
 
 const HomePage_OpenDownloadLog_Function = () => {

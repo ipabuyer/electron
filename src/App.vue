@@ -83,8 +83,20 @@
           :App_StatusRefreshSeed_Number="App_StatusRefreshSeed_Number"
           :App_SearchTerm_String="App_SearchTerm_String"
           :App_SearchTrigger_Number="App_SearchTrigger_Number"
+          :App_AddToDownloadQueue_Function="App_AddToDownloadQueue_Function"
           :App_Notify_Function="App_Notify_Function"
           @searching="App_Searching_Boolean = $event"
+        />
+        <DownloadPage
+          v-else-if="App_ActivePage_String === 'download'"
+          :App_DownloadQueue_Array="App_DownloadQueue_Array"
+          :App_Passphrase_String="App_Passphrase_String"
+          :App_Notify_Function="App_Notify_Function"
+          :App_DownloadRunning_Boolean="App_DownloadRunning_Boolean"
+          :App_DownloadLogs_Array="App_DownloadLogs_Array"
+          :App_DownloadLog_Text_String="App_DownloadLog_Text_String"
+          :App_CopyText_Function="App_CopyText_Function"
+          :App_ClearDownloadLog_Function="App_ClearDownloadLog_Function"
         />
         <AccountPage
           v-else-if="App_ActivePage_String === 'account'"
@@ -128,46 +140,14 @@
         </div>
       </transition-group>
     </div>
-
-    <div
-      v-if="App_DownloadLog_Open_Boolean"
-      class="download-log-panel"
-      :style="{
-        left: `${App_DownloadLog_Position_Object.x}px`,
-        top: `${App_DownloadLog_Position_Object.y}px`
-      }"
-    >
-      <div class="download-log-header" @pointerdown="App_StartDownloadDrag_Function">
-        <span>下载日志</span>
-        <div class="download-log-actions">
-          <button class="ui-button ghost" type="button" @click="App_CopyText_Function(App_DownloadLog_Text_String)">
-            复制
-          </button>
-          <button class="ui-button ghost" type="button" @click="App_ClearDownloadLog_Function">清空</button>
-          <button
-            v-if="App_DownloadRunning_Boolean"
-            class="ui-button danger"
-            type="button"
-            @click="App_CancelDownload_Function"
-          >
-            取消下载
-          </button>
-          <button class="ui-button text" type="button" @click="App_DownloadLog_Open_Boolean = false">关闭</button>
-        </div>
-      </div>
-      <div class="download-log-body" ref="App_DownloadLogBody_Ref">
-        <div v-for="(line, index) in App_DownloadLogs_Array" :key="`${index}-${line}`" class="download-log-line">
-          {{ line }}
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import HomePage from './pages/HomePage.vue';
+import DownloadPage from './pages/DownloadPage.vue';
 import AccountPage from './pages/AccountPage.vue';
 import SettingPage from './pages/SettingPage.vue';
 import AppIcon from '../assets/Square44x44Logo.scale-200.png';
@@ -187,14 +167,11 @@ const App_SidebarCollapsed_Boolean = ref(false);
 const App_SearchTerm_String = ref('');
 const App_SearchTrigger_Number = ref(0);
 const App_Searching_Boolean = ref(false);
-const App_DownloadLog_Open_Boolean = ref(false);
 const App_DownloadRunning_Boolean = ref(false);
 const App_DownloadLogs_Array = ref([]);
 const App_DownloadLog_Text_String = computed(() => App_DownloadLogs_Array.value.join('\n'));
-const App_DownloadLog_Position_Object = ref({ x: 0, y: 0 });
-const App_DownloadLog_Dragging_Object = ref({ active: false, offsetX: 0, offsetY: 0 });
-const App_DownloadLogBody_Ref = ref(null);
 const APP_DOWNLOAD_LOG_MAX_LINES = 15;
+const App_DownloadQueue_Array = ref([]);
 
 const App_SnackbarQueue_Array = ref([]);
 let App_SnackbarSeed_Number = 0;
@@ -235,12 +212,6 @@ const App_CopyText_Function = async (text) => {
 
 const App_ClearDownloadLog_Function = () => {
   App_DownloadLogs_Array.value = [];
-};
-
-const App_CancelDownload_Function = async () => {
-  if (!window.electronAPI?.cancelDownload) return;
-  await window.electronAPI.cancelDownload();
-  App_DownloadLogs_Array.value.push('已请求取消下载…');
 };
 
 const App_ShowSearch_Boolean = computed(() => App_ActivePage_String.value === 'home');
@@ -284,72 +255,24 @@ const App_SetDownloadPath_Function = (value) => {
   App_DownloadPath_String.value = value;
 };
 
-
 const App_IncrementStatusRefreshSeed_Function = () => {
   App_StatusRefreshSeed_Number.value += 1;
 };
 
-const App_SetDownloadLogDefaultPosition_Function = () => {
-  const width = 640;
-  const height = 160;
-  const padding = 24;
-  const maxX = Math.max(padding, window.innerWidth - width - padding);
-  const maxY = Math.max(padding, window.innerHeight - height - 88);
-  App_DownloadLog_Position_Object.value = {
-    x: maxX,
-    y: maxY
-  };
-};
-
-const App_ClampDownloadLogPosition_Function = () => {
-  const width = 640;
-  const height = 160;
-  const padding = 12;
-  const maxX = Math.max(padding, window.innerWidth - width - padding);
-  const maxY = Math.max(padding, window.innerHeight - height - padding);
-  const current = App_DownloadLog_Position_Object.value;
-  App_DownloadLog_Position_Object.value = {
-    x: Math.min(Math.max(padding, current.x), maxX),
-    y: Math.min(Math.max(padding, current.y), maxY)
-  };
-};
-
-const App_HandleDownloadDragMove_Function = (event) => {
-  if (!App_DownloadLog_Dragging_Object.value.active) return;
-  const width = 640;
-  const height = 160;
-  const padding = 12;
-  const x = event.clientX - App_DownloadLog_Dragging_Object.value.offsetX;
-  const y = event.clientY - App_DownloadLog_Dragging_Object.value.offsetY;
-  const maxX = Math.max(padding, window.innerWidth - width - padding);
-  const maxY = Math.max(padding, window.innerHeight - height - padding);
-  App_DownloadLog_Position_Object.value = {
-    x: Math.min(Math.max(padding, x), maxX),
-    y: Math.min(Math.max(padding, y), maxY)
-  };
-};
-
-const App_StopDownloadDrag_Function = () => {
-  App_DownloadLog_Dragging_Object.value.active = false;
-};
-
-const App_StartDownloadDrag_Function = (event) => {
-  const panel = event.currentTarget?.closest('.download-log-panel');
-  if (!panel) return;
-  const rect = panel.getBoundingClientRect();
-  App_DownloadLog_Dragging_Object.value = {
-    active: true,
-    offsetX: event.clientX - rect.left,
-    offsetY: event.clientY - rect.top
-  };
+const App_AddToDownloadQueue_Function = (apps = []) => {
+  if (!Array.isArray(apps) || apps.length === 0) return 0;
+  const map = new Map(App_DownloadQueue_Array.value.map((item) => [item.bundleId, item]));
+  let added = 0;
+  apps.forEach((app) => {
+    if (!app?.bundleId || map.has(app.bundleId)) return;
+    map.set(app.bundleId, app);
+    added += 1;
+  });
+  App_DownloadQueue_Array.value = Array.from(map.values());
+  return added;
 };
 
 onMounted(async () => {
-  App_SetDownloadLogDefaultPosition_Function();
-  window.addEventListener('pointermove', App_HandleDownloadDragMove_Function);
-  window.addEventListener('pointerup', App_StopDownloadDrag_Function);
-  window.addEventListener('blur', App_StopDownloadDrag_Function);
-  window.addEventListener('resize', App_ClampDownloadLogPosition_Function);
   if (!window.electronAPI?.readPassphrase) return;
   const saved = await window.electronAPI.readPassphrase();
   if (saved) {
@@ -371,16 +294,10 @@ onMounted(async () => {
       if (App_DownloadLogs_Array.value.length > APP_DOWNLOAD_LOG_MAX_LINES) {
         App_DownloadLogs_Array.value = App_DownloadLogs_Array.value.slice(-APP_DOWNLOAD_LOG_MAX_LINES);
       }
-      App_DownloadLog_Open_Boolean.value = true;
-      nextTick(() => {
-        const el = App_DownloadLogBody_Ref.value;
-        if (!el) return;
-        el.scrollTop = el.scrollHeight;
-      });
     });
   }
   window.addEventListener('download-log-open', () => {
-    App_DownloadLog_Open_Boolean.value = true;
+    App_ActivePage_String.value = 'download';
   });
   window.addEventListener('download-start', () => {
     App_DownloadRunning_Boolean.value = true;
@@ -390,10 +307,4 @@ onMounted(async () => {
   });
 });
 
-onBeforeUnmount(() => {
-  window.removeEventListener('pointermove', App_HandleDownloadDragMove_Function);
-  window.removeEventListener('pointerup', App_StopDownloadDrag_Function);
-  window.removeEventListener('blur', App_StopDownloadDrag_Function);
-  window.removeEventListener('resize', App_ClampDownloadLogPosition_Function);
-});
 </script>
