@@ -194,7 +194,7 @@ const HomePage_FormatPrice_Function = (value) => {
 const HomePage_Apps_Array = ref([]);
 const HomePage_StatusMap_Object = ref({});
 const HomePage_SelectedIds_Array = ref([]);
-const HomePage_Filter_String = ref('all');
+const HomePage_Filter_String = ref('unbought');
 const HomePage_IsSearching_Boolean = ref(false);
 const HomePage_ActionLoading_Boolean = ref(false);
 const HomePage_ContextMenu_Object = ref(null);
