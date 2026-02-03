@@ -1,9 +1,10 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+﻿const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('node:path');
 const {
   ensureDatabase,
   listStatuses,
   upsertMany,
+  deleteMany,
   getDownloadsDir,
   readPassphrase,
   writePassphrase,
@@ -66,6 +67,7 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('db:list', async () => listStatuses());
 ipcMain.handle('db:setMany', async (_event, payload = []) => upsertMany(payload));
+ipcMain.handle('db:deleteMany', async (_event, payload = []) => deleteMany(payload));
 ipcMain.handle('db:clear', async () => {
   try {
     await clearDatabase();
@@ -83,7 +85,10 @@ ipcMain.handle('downloadPath:read', async () => readDownloadPath());
 ipcMain.handle('downloadPath:write', async (_event, value) => writeDownloadPath(value));
 ipcMain.handle('downloadPath:open', async (_event, value) => {
   try {
-    await shell.openPath(value);
+    const errorMessage = await shell.openPath(value);
+    if (errorMessage) {
+      return { ok: false, error: errorMessage };
+    }
     return { ok: true };
   } catch (error) {
     return { ok: false, error: error.message };
@@ -180,7 +185,27 @@ ipcMain.handle('ipatool:purchase', async (_event, payload) => {
     });
     if (payload.bundleIds?.length) {
       const email = currentAuth.email || payload.email || '';
-      if (result.ok) {
+      const results = Array.isArray(result.results) ? result.results : [];
+      const purchasedRows = results
+        .filter((item) => item.ok)
+        .map((item) => ({
+          bundleId: item.bundleId,
+          appName: payload.appNameMap?.[item.bundleId] || '',
+          email,
+          status: 'purchased'
+        }));
+      const ownedRows = results
+        .filter((item) => {
+          const text = `${item.stderr || ''}\n${item.output || ''}`.toLowerCase();
+          return text.includes('stdq') || text.includes('already') || text.includes('owned');
+        })
+        .map((item) => ({
+          bundleId: item.bundleId,
+          appName: payload.appNameMap?.[item.bundleId] || '',
+          email,
+          status: 'owned'
+        }));
+      if (result.ok && !results.length) {
         const rows = payload.bundleIds.map((bundleId) => ({
           bundleId,
           appName: payload.appNameMap?.[bundleId] || '',
@@ -188,18 +213,10 @@ ipcMain.handle('ipatool:purchase', async (_event, payload) => {
           status: 'purchased'
         }));
         await upsertMany(rows);
-      } else if (Array.isArray(result.results)) {
-        const ownedRows = result.results
-          .filter((item) => {
-            const text = `${item.stderr || ''}\n${item.output || ''}`.toLowerCase();
-            return text.includes('stdq') || text.includes('already') || text.includes('owned');
-          })
-          .map((item) => ({
-            bundleId: item.bundleId,
-            appName: payload.appNameMap?.[item.bundleId] || '',
-            email,
-            status: 'owned'
-          }));
+      } else {
+        if (purchasedRows.length) {
+          await upsertMany(purchasedRows);
+        }
         if (ownedRows.length) {
           await upsertMany(ownedRows);
           result.ownedApps = ownedRows.map((row) => ({

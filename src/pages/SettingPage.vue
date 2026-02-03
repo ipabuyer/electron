@@ -1,5 +1,5 @@
 ﻿<template>
-  <section class="page narrow">
+  <section class="page narrow setting-page">
     <h2 class="page-title">设置</h2>
 
     <div class="form-grid">
@@ -29,6 +29,7 @@
               打开
             </button>
           </div>
+          <small class="hint">前往开发者官方网站，查看本软件更多信息和 Q&A</small>
         </label>
       </div>
 
@@ -44,11 +45,25 @@
               更改路径
             </button>
           </div>
+          <small class="hint">默认下载路径为当前用户的下载文件夹</small>
+        </label>
+      </div>
+
+      <div class="panel setting-card">
+        <label class="field">
+          <span>反馈</span>
+          <div class="field-row">
+            <span class="muted">ipa@blazesnow.com</span>
+            <button class="ui-button ghost" type="button" @click="SettingPage_CopyFeedbackEmail_AsyncFunction">
+              复制
+            </button>
+          </div>
+          <small class="hint">遇到任何问题，欢迎邮件反馈。提供截图和复现过程有助于修复问题。</small>
         </label>
       </div>
     </div>
 
-    <div class="panel setting-card danger-panel">
+    <div class="panel setting-card danger-panel setting-danger-card">
       <div class="danger-title">清空本地数据库</div>
       <div class="danger-desc">清空后已购买/已拥有记录将被移除，请谨慎操作。</div>
       <button class="ui-button danger" type="button" @click="SettingPage_ClearOpen_Boolean = true">
@@ -211,6 +226,29 @@ const SettingPage_ClearDatabase_AsyncFunction = async () => {
     props.App_Notify_Function('error', error.message || '清空失败');
   } finally {
     SettingPage_ClearOpen_Boolean.value = false;
+  }
+};
+
+const SettingPage_CopyFeedbackEmail_AsyncFunction = async () => {
+  const email = 'ipa@blazesnow.com';
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(email);
+      props.App_Notify_Function('success', '邮箱已复制');
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = email;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    props.App_Notify_Function('success', '邮箱已复制');
+  } catch (_error) {
+    props.App_Notify_Function('error', '复制失败');
   }
 };
 </script>

@@ -194,7 +194,7 @@ const HomePage_FormatPrice_Function = (value) => {
 const HomePage_Apps_Array = ref([]);
 const HomePage_StatusMap_Object = ref({});
 const HomePage_SelectedIds_Array = ref([]);
-const HomePage_Filter_String = ref('all');
+const HomePage_Filter_String = ref('unbought');
 const HomePage_IsSearching_Boolean = ref(false);
 const HomePage_ActionLoading_Boolean = ref(false);
 const HomePage_ContextMenu_Object = ref(null);
@@ -279,7 +279,7 @@ const HomePage_ToggleSelectAll_Function = () => {
 };
 
 const HomePage_HandleMarkStatus_AsyncFunction = async (status, targetIds) => {
-  if (!window.electronAPI?.setAppStatuses) return;
+  if (!window.electronAPI?.setAppStatuses || !window.electronAPI?.deleteAppStatuses) return;
   const ids = targetIds && targetIds.length ? targetIds : HomePage_SelectedIds_Array.value;
   if (!ids.length) {
     props.App_Notify_Function('warning', '请选择需要处理的应用');
@@ -287,17 +287,22 @@ const HomePage_HandleMarkStatus_AsyncFunction = async (status, targetIds) => {
   }
   HomePage_ActionLoading_Boolean.value = true;
   try {
-    const rows = ids.map((bundleId) => ({
-      bundleId,
-      appName: HomePage_Apps_Array.value.find((app) => app.bundleId === bundleId)?.name || '',
-      email: props.App_AuthState_Object.email || '',
-      status
-    }));
-    await window.electronAPI.setAppStatuses(rows);
+    if (status === 'unbought') {
+      await window.electronAPI.deleteAppStatuses(ids);
+    } else {
+      const rows = ids.map((bundleId) => ({
+        bundleId,
+        appName: HomePage_Apps_Array.value.find((app) => app.bundleId === bundleId)?.name || '',
+        email: props.App_AuthState_Object.email || '',
+        status
+      }));
+      await window.electronAPI.setAppStatuses(rows);
+    }
     await HomePage_LoadStatuses_AsyncFunction();
     if (status === 'purchased') {
-      rows.forEach((row) => {
-        props.App_Notify_Function('success', `${row.appName || row.bundleId} 已购买`);
+      ids.forEach((bundleId) => {
+        const appName = HomePage_Apps_Array.value.find((app) => app.bundleId === bundleId)?.name || bundleId;
+        props.App_Notify_Function('success', `${appName} 已购买`);
       });
     } else {
       props.App_Notify_Function('success', `已标记 ${ids.length} 个为${HomePage_StatusLabel_Function(status)}`);

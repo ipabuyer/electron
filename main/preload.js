@@ -1,8 +1,9 @@
-const { contextBridge, ipcRenderer } = require('electron');
+﻿const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   listAppStatuses: () => ipcRenderer.invoke('db:list'),
   setAppStatuses: (payload) => ipcRenderer.invoke('db:setMany', payload),
+  deleteAppStatuses: (payload) => ipcRenderer.invoke('db:deleteMany', payload),
   clearDatabase: () => ipcRenderer.invoke('db:clear'),
   readPassphrase: () => ipcRenderer.invoke('passphrase:read'),
   savePassphrase: (value) => ipcRenderer.invoke('passphrase:write', value),
