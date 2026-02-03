@@ -145,6 +145,23 @@ const upsertMany = async (rows) => {
   return listStatuses();
 };
 
+const deleteMany = async (bundleIds) => {
+  const db = await ensureDatabase();
+  const ids = Array.isArray(bundleIds) ? bundleIds.filter(Boolean) : [];
+  if (!ids.length) return listStatuses();
+  const stmt = db.prepare('DELETE FROM apps WHERE bundleId = ?');
+  db.run('BEGIN TRANSACTION');
+  for (const bundleId of ids) {
+    stmt.bind([bundleId]);
+    stmt.step();
+    stmt.reset();
+  }
+  db.run('COMMIT');
+  stmt.free();
+  persistDb();
+  return listStatuses();
+};
+
 const readPassphrase = async () => {
   ensureBaseDir();
   const passPath = path.join(getBaseDir(), PASSPHRASE_FILE);
@@ -226,6 +243,7 @@ module.exports = {
   listStatuses,
   upsertStatus,
   upsertMany,
+  deleteMany,
   getDbPath,
   getBaseDir,
   getDownloadsDir,
