@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="page download-page">
     <div class="panel">
       <div class="panel-row">
