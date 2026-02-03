@@ -5,7 +5,7 @@ const buildConfig = {
   appId: 'IPAbuyer.IPAbuyer',
   productName: 'IPAbuyer',
   buildVersion: '0.2.0.0',
-  buildNumber: '1',
+  buildNumber: '0',
   icon: 'assets/Icon.ico',
   asarUnpack: ['include/*.exe'],
   directories: {
