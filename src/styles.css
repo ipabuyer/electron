@@ -466,6 +466,7 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .app-icon {
@@ -480,12 +481,25 @@ a {
   flex-direction: column;
   gap: 4px;
   font-weight: 600;
+  min-width: 0;
 }
 
 .checkbox-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+}
+
+.checkbox-row input[type='checkbox'],
+.app-cell input[type='checkbox'] {
+  flex: 0 0 16px;
+  min-width: 16px;
+  max-width: 16px;
+}
+
+.checkbox-row span {
+  min-width: 0;
 }
 
 .empty {
