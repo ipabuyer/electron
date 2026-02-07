@@ -33,7 +33,7 @@
     "electron": "^40.0.0",
     "electron-builder": "^26.4.0",
     "vite": "^5.2.9",
-    "wait-on": "^7.2.0"
+    "wait-on": "^9.0.3"
   },
   "build": "electron-builder.config.cjs"
 }
