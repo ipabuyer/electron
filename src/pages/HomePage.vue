@@ -133,6 +133,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { desktopAPI } from '../lib/desktop';
 
 const props = defineProps({
   App_CountryCode_String: {
@@ -202,8 +203,7 @@ const HomePage_ContextMenu_AppId_String = ref('');
 const HomePage_LastContextOpen_Number = ref(0);
 
 const HomePage_LoadStatuses_AsyncFunction = async () => {
-  if (!window.electronAPI?.listAppStatuses) return;
-  const rows = await window.electronAPI.listAppStatuses();
+  const rows = await desktopAPI.listAppStatuses();
   const map = {};
   (rows || []).forEach((row) => {
     map[row.bundleId] = row;
@@ -220,7 +220,7 @@ const HomePage_RunSearch_AsyncFunction = async () => {
   emit('searching', true);
   try {
     const country = (props.App_CountryCode_String || 'cn').toLowerCase();
-    const resp = await window.electronAPI.searchItunes({
+    const resp = await desktopAPI.searchItunes({
       term: props.App_SearchTerm_String.trim(),
       entity: 'software',
       limit: 50,
@@ -279,7 +279,6 @@ const HomePage_ToggleSelectAll_Function = () => {
 };
 
 const HomePage_HandleMarkStatus_AsyncFunction = async (status, targetIds) => {
-  if (!window.electronAPI?.setAppStatuses || !window.electronAPI?.deleteAppStatuses) return;
   const ids = targetIds && targetIds.length ? targetIds : HomePage_SelectedIds_Array.value;
   if (!ids.length) {
     props.App_Notify_Function('warning', '请选择需要处理的应用');
@@ -288,7 +287,7 @@ const HomePage_HandleMarkStatus_AsyncFunction = async (status, targetIds) => {
   HomePage_ActionLoading_Boolean.value = true;
   try {
     if (status === 'unbought') {
-      await window.electronAPI.deleteAppStatuses(ids);
+      await desktopAPI.deleteAppStatuses(ids);
     } else {
       const rows = ids.map((bundleId) => ({
         bundleId,
@@ -296,7 +295,7 @@ const HomePage_HandleMarkStatus_AsyncFunction = async (status, targetIds) => {
         email: props.App_AuthState_Object.email || '',
         status
       }));
-      await window.electronAPI.setAppStatuses(rows);
+      await desktopAPI.setAppStatuses(rows);
     }
     await HomePage_LoadStatuses_AsyncFunction();
     if (status === 'purchased') {
@@ -333,7 +332,7 @@ const HomePage_HandlePurchase_AsyncFunction = async (bundleIds) => {
         appNameMap: { [bundleId]: appName },
         email: props.App_AuthState_Object.email || ''
       };
-      const res = await window.electronAPI.purchase(JSON.parse(JSON.stringify(payload)));
+      const res = await desktopAPI.purchase(JSON.parse(JSON.stringify(payload)));
       if (res.ok) {
         await HomePage_LoadStatuses_AsyncFunction();
         const resultItem = res.results?.find((item) => item.bundleId === bundleId);

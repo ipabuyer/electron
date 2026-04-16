@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 release/
+src-tauri/target/
 
 # 证书文件
 *.cer

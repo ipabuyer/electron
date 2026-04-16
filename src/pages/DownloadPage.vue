@@ -111,6 +111,7 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue';
+import { desktopAPI } from '../lib/desktop';
 
 const props = defineProps({
   App_DownloadQueue_Array: {
@@ -225,7 +226,7 @@ const DownloadPage_StartQueue_AsyncFunction = async () => {
       bundleIds: [...ids],
       passphrase: props.App_Passphrase_String || ''
     };
-    const res = await window.electronAPI.download(JSON.parse(JSON.stringify(payload)));
+    const res = await desktopAPI.download(JSON.parse(JSON.stringify(payload)));
     if (Array.isArray(res.results)) {
       const updates = res.results.map((item) => {
         let status = '失败';
@@ -272,14 +273,13 @@ const DownloadPage_OpenDownloadPath_Function = async () => {
     props.App_Notify_Function('warning', '下载路径为空');
     return;
   }
-  const res = await window.electronAPI.openDownloadPath(path);
+  const res = await desktopAPI.openDownloadPath(path);
   if (!res?.ok && !res?.canceled) {
     props.App_Notify_Function('error', res?.error || '打开失败');
   }
 };
 
 const DownloadPage_CancelAll_AsyncFunction = async () => {
-  if (!window.electronAPI?.cancelDownload) return;
   const finals = new Set(['完成', '失败', '已取消']);
   const updates = props.App_DownloadQueue_Array
     .filter((app) => !finals.has(props.App_DownloadStatus_Map_Object[app.bundleId]))
@@ -289,7 +289,7 @@ const DownloadPage_CancelAll_AsyncFunction = async () => {
   }
   window.dispatchEvent(new CustomEvent('download-cancel-all'));
   try {
-    await window.electronAPI.cancelDownload();
+    await desktopAPI.cancelDownload();
     props.App_Notify_Function('info', '已请求终止所有下载');
   } catch (_error) {
     props.App_Notify_Function('error', '终止下载失败');
@@ -297,10 +297,9 @@ const DownloadPage_CancelAll_AsyncFunction = async () => {
 };
 
 const DownloadPage_CancelCurrent_AsyncFunction = async () => {
-  if (!window.electronAPI?.cancelDownloadCurrent) return;
   props.App_MarkCurrentDownloadCanceled_Function();
   try {
-    await window.electronAPI.cancelDownloadCurrent();
+    await desktopAPI.cancelDownloadCurrent();
     props.App_Notify_Function('info', '已请求终止当前下载');
   } catch (_error) {
     props.App_Notify_Function('error', '终止下载失败');

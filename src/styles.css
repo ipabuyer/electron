@@ -113,7 +113,7 @@ a {
   padding: 0 16px;
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
-  -webkit-app-region: drag;
+  user-select: none;
 }
 
 .topbar-left,
@@ -157,7 +157,6 @@ a {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 4px 8px;
-  -webkit-app-region: no-drag;
 }
 
 .topbar-input {
@@ -764,16 +763,11 @@ input[type='checkbox'] {
   display: grid;
   place-items: center;
   cursor: pointer;
-  -webkit-app-region: no-drag;
 }
 
 .ui-icon-button .icon {
   width: 18px;
   height: 18px;
-}
-
-.no-drag {
-  -webkit-app-region: no-drag;
 }
 
 .spinner {

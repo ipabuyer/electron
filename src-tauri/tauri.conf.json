@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "IPAbuyer",
+  "version": "2026.2.4",
+  "identifier": "com.ipabuyer.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm dev:web",
+    "beforeBuildCommand": "pnpm build:web",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "IPAbuyer",
+        "width": 1280,
+        "height": 840,
+        "minWidth": 1080,
+        "minHeight": 720,
+        "decorations": false,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": [
+      "../include/*"
+    ],
+    "icon": [
+      "../assets/appx/Square44x44Logo.scale-200.png",
+      "../assets/appx/Icon.ico"
+    ]
+  }
+}

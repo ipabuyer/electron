@@ -122,6 +122,7 @@
 
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue';
+import { desktopAPI } from '../lib/desktop';
 
 const props = defineProps({
   App_AuthState_Object: {
@@ -202,7 +203,7 @@ const AccountPage_SubmitLogin_AsyncFunction = async () => {
   }
   AccountPage_ActionLoading_Boolean.value = true;
   try {
-    const res = await window.electronAPI.login({
+    const res = await desktopAPI.login({
       email: AccountPage_LoginForm_Object.email,
       password: AccountPage_LoginForm_Object.password,
       authCode: AccountPage_LoginForm_Object.authCode,
@@ -244,7 +245,7 @@ const AccountPage_CheckAuth_AsyncFunction = async (options = {}) => {
     return;
   }
   try {
-    const res = await window.electronAPI.authInfo({ passphrase });
+    const res = await desktopAPI.authInfo({ passphrase });
     if (res.ok) {
       const parsed = AccountPage_ParseAuthLine_Function(res.stdout || res.output || res.message);
       const email = res.email || parsed.email;
@@ -273,7 +274,7 @@ const AccountPage_CheckAuth_AsyncFunction = async (options = {}) => {
 
 const AccountPage_Logout_AsyncFunction = async () => {
   try {
-    const res = await window.electronAPI.authRevoke();
+    const res = await desktopAPI.authRevoke();
     if (res.ok) {
       props.setApp_AuthState_Object({ email: '', loggedIn: false, isTest: false });
       props.App_Notify_Function('info', '已退出登录');

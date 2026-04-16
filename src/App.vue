@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="app-shell">
-    <div class="app-topbar">
+    <div class="app-topbar" data-tauri-drag-region>
       <div class="topbar-left">
         <button class="ui-icon-button no-drag" type="button" @click="App_ToggleSidebar_Function">
           <svg v-if="App_SidebarCollapsed_Boolean" viewBox="0 0 24 24" class="icon" aria-hidden="true">
@@ -156,13 +156,14 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import HomePage from './pages/HomePage.vue';
 import DownloadPage from './pages/DownloadPage.vue';
 import AccountPage from './pages/AccountPage.vue';
 import SettingPage from './pages/SettingPage.vue';
 import AppIcon from '../assets/Square44x44Logo.scale-200.png';
+import { desktopAPI } from './lib/desktop';
 
 const App_ActivePage_String = ref('home');
 const App_CountryCode_String = ref('cn');
@@ -241,16 +242,18 @@ const App_TriggerSearch_Function = () => {
 };
 
 const App_WindowMinimize_Function = () => {
-  window.electronAPI?.windowMinimize?.();
+  desktopAPI.windowMinimize();
 };
 
 const App_WindowMaximize_Function = () => {
-  window.electronAPI?.windowMaximize?.();
+  desktopAPI.windowMaximize();
 };
 
 const App_WindowClose_Function = () => {
-  window.electronAPI?.windowClose?.();
+  desktopAPI.windowClose();
 };
+
+let App_DownloadLogUnlisten_Function = null;
 
 const App_SetAuthState_Function = (value) => {
   App_AuthState_Object.email = value.email;
@@ -333,48 +336,41 @@ const App_MarkCurrentDownloadCanceled_Function = () => {
 };
 
 onMounted(async () => {
-  if (!window.electronAPI?.readPassphrase) return;
-  const saved = await window.electronAPI.readPassphrase();
+  const saved = await desktopAPI.readPassphrase();
   if (saved) {
     App_Passphrase_String.value = saved;
   }
-  if (window.electronAPI?.readCountry) {
-    const country = await window.electronAPI.readCountry();
-    if (country) App_CountryCode_String.value = country;
-  }
-  if (window.electronAPI?.readDownloadPath) {
-    const path = await window.electronAPI.readDownloadPath();
-    if (path) App_DownloadPath_String.value = path;
-  }
-  if (window.electronAPI?.onDownloadLog) {
-    window.electronAPI.onDownloadLog((data) => {
-      if (!data?.line) return;
-      const prefix = data.bundleId ? `[${data.bundleId}] ` : '';
-      App_DownloadLogs_Array.value.push(`${prefix}${data.line}`);
-      if (App_DownloadLogs_Array.value.length > APP_DOWNLOAD_LOG_MAX_LINES) {
-        App_DownloadLogs_Array.value = App_DownloadLogs_Array.value.slice(-APP_DOWNLOAD_LOG_MAX_LINES);
+  const country = await desktopAPI.readCountry();
+  if (country) App_CountryCode_String.value = country;
+  const path = await desktopAPI.readDownloadPath();
+  if (path) App_DownloadPath_String.value = path;
+  App_DownloadLogUnlisten_Function = await desktopAPI.onDownloadLog((data) => {
+    if (!data?.line) return;
+    const prefix = data.bundleId ? `[${data.bundleId}] ` : '';
+    App_DownloadLogs_Array.value.push(`${prefix}${data.line}`);
+    if (App_DownloadLogs_Array.value.length > APP_DOWNLOAD_LOG_MAX_LINES) {
+      App_DownloadLogs_Array.value = App_DownloadLogs_Array.value.slice(-APP_DOWNLOAD_LOG_MAX_LINES);
+    }
+    if (data.bundleId) {
+      App_CurrentDownloadId_String.value = data.bundleId;
+      const successMatch = data.line.match(/\bsuccess=(true|false)\b/i);
+      if (successMatch && !App_CancelAll_Active_Boolean.value) {
+        const ok = successMatch[1].toLowerCase() === 'true';
+        App_SetDownloadStatusBatch_Function([
+          { bundleId: data.bundleId, status: ok ? '完成' : '失败' }
+        ]);
+        return;
       }
-      if (data.bundleId) {
-        App_CurrentDownloadId_String.value = data.bundleId;
-        const successMatch = data.line.match(/\bsuccess=(true|false)\b/i);
-        if (successMatch && !App_CancelAll_Active_Boolean.value) {
-          const ok = successMatch[1].toLowerCase() === 'true';
-          App_SetDownloadStatusBatch_Function([
-            { bundleId: data.bundleId, status: ok ? '完成' : '失败' }
-          ]);
-          return;
-        }
-        const current = App_DownloadStatus_Map_Object.value[data.bundleId];
-        const finals = new Set(['完成', '失败', '已取消', '已跳过']);
-        if (!finals.has(current)) {
-          App_DownloadStatus_Map_Object.value = {
-            ...App_DownloadStatus_Map_Object.value,
-            [data.bundleId]: '下载中'
-          };
-        }
+      const current = App_DownloadStatus_Map_Object.value[data.bundleId];
+      const finals = new Set(['完成', '失败', '已取消', '已跳过']);
+      if (!finals.has(current)) {
+        App_DownloadStatus_Map_Object.value = {
+          ...App_DownloadStatus_Map_Object.value,
+          [data.bundleId]: '下载中'
+        };
       }
-    });
-  }
+    }
+  });
   window.addEventListener('download-log-open', () => {
     App_ActivePage_String.value = 'download';
   });
@@ -389,6 +385,10 @@ onMounted(async () => {
   window.addEventListener('download-cancel-all', () => {
     App_CancelAll_Active_Boolean.value = true;
   });
+});
+
+onBeforeUnmount(() => {
+  App_DownloadLogUnlisten_Function?.();
 });
 
 </script>

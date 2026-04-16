@@ -86,6 +86,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { desktopAPI } from '../lib/desktop';
 
 const ISO_3166_ALPHA2_CODES = new Set([
   'AD','AE','AF','AG','AI','AL','AM','AO','AQ','AR','AS','AT','AU','AW','AX','AZ',
@@ -168,20 +169,14 @@ const SettingPage_ConfirmCountry_Function = async () => {
   }
   const normalized = value.toLowerCase();
   props.setApp_CountryCode_String(normalized);
-  if (window.electronAPI?.saveCountry) {
-    await window.electronAPI.saveCountry(normalized);
-  }
+  await desktopAPI.saveCountry(normalized);
   props.App_Notify_Function('success', `国家代码已设置为 ${normalized}`);
 };
 
 const SettingPage_OpenDeveloperSite_Function = async () => {
   const site = props.App_DeveloperSite_String || 'ipa.blazesnow.com';
   const url = site.startsWith('http') ? site : `https://${site}`;
-  if (!window.electronAPI?.openExternal) {
-    props.App_Notify_Function('warning', '无法打开外部链接');
-    return;
-  }
-  const res = await window.electronAPI.openExternal(url);
+  const res = await desktopAPI.openExternal(url);
   if (!res?.ok) {
     props.App_Notify_Function('error', res?.error || '打开失败');
   }
@@ -193,18 +188,14 @@ const SettingPage_OpenDownloadPath_Function = async () => {
     props.App_Notify_Function('warning', '下载路径为空');
     return;
   }
-  const res = await window.electronAPI.openDownloadPath(path);
+  const res = await desktopAPI.openDownloadPath(path);
   if (!res?.ok && !res?.canceled) {
     props.App_Notify_Function('error', res?.error || '打开失败');
   }
 };
 
 const SettingPage_PickDownloadPath_Function = async () => {
-  if (!window.electronAPI?.pickDownloadPath) {
-    props.App_Notify_Function('warning', '无法选择下载路径');
-    return;
-  }
-  const res = await window.electronAPI.pickDownloadPath();
+  const res = await desktopAPI.pickDownloadPath();
   if (res?.ok && res.path) {
     props.App_Notify_Function('success', '下载路径已更新');
     props.setApp_DownloadPath_String(res.path);
@@ -215,7 +206,7 @@ const SettingPage_PickDownloadPath_Function = async () => {
 
 const SettingPage_ClearDatabase_AsyncFunction = async () => {
   try {
-    const res = await window.electronAPI.clearDatabase();
+    const res = await desktopAPI.clearDatabase();
     if (res?.ok) {
       props.setApp_StatusRefreshSeed_Number();
       props.App_Notify_Function('success', '本地数据库已清空');
